@@ -1,7 +1,7 @@
 export const routes = [
   {
     path: "/",
-    component: () =>  import ("@controleonline/quasar-layout-ui/src/layouts/MainLayout.vue"),
+    component: () =>  import ("@controleonline/ui-layout/src/layouts/MainLayout.vue"),
     children: [
       {
         name: "LoginIndex",

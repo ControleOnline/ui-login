@@ -223,7 +223,7 @@
 </template>
 
 <script>
-import ListAutocomplete from "@controleonline/quasar-legacy-ui/quasar-common-ui/src/components/Common/ListAutocomplete.vue";
+import ListAutocomplete from "@controleonline/ui-legacy/ui-common/src/components/Common/ListAutocomplete.vue";
 import { mapActions, mapGetters } from "vuex";
 
 export default {
