@@ -11,6 +11,7 @@ export default {
           username: payload.username,
           token: payload.api_key,
           people: payload.people,
+          id: payload.id,
           roles: payload.roles,
           company: payload.company,
           realname: payload.realname,
