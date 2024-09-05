@@ -1,5 +1,5 @@
 import { api } from "@controleonline/../../src/boot/api";
-import SubmissionError from "@controleonline/ui-common/src/error/SubmissionError";
+
 import * as types from "./mutation_types";
 import { LocalStorage } from "quasar";
 
@@ -14,16 +14,8 @@ export const signIn = ({ commit }, values) => {
       return data;
     })
     .catch((e) => {
-      if (e instanceof SubmissionError) {
-        commit(types.LOGIN_SET_VIOLATIONS, e.errors);
-
-        commit(types.LOGIN_SET_ERROR, e.errors._error);
-
-        throw new Error(e.errors._error);
-      }
-
-      commit(types.LOGIN_SET_ERROR, e.message);
-      throw new Error(e.message);
+      commit(types.SET_ERROR, e.message);
+      throw e;
     })
     .finally(() => {
       commit(types.LOGIN_SET_ISLOADING, false);
@@ -51,13 +43,8 @@ export const gSignIn = ({ commit }, values) => {
       return response;
     })
     .catch((e) => {
-      if (e instanceof SubmissionError) {
-        commit(types.LOGIN_SET_VIOLATIONS, e.errors);
-        commit(types.LOGIN_SET_ERROR, e.errors._error);
-        throw new Error(e.errors._error);
-      }
-      commit(types.LOGIN_SET_ERROR, e.message);
-      throw new Error(e.message);
+      commit(types.SET_ERROR, e.message);
+      throw e;
     })
     .finally(() => {
       commit(types.LOGIN_SET_ISLOADING, false);
@@ -88,7 +75,7 @@ export const signUp = ({ commit }, values) => {
     .catch((e) => {
       commit(types.LOGIN_SET_ISLOADING, false);
 
-      if (e instanceof SubmissionError) throw new Error(e.errors._error);
+      if (e instanceof Error) throw new Error(e.errors._error);
 
       throw new Error(e.message);
     });
