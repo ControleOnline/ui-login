@@ -41,7 +41,9 @@
           lazy-rules
           v-model="item.name"
           type="text"
-          :placeholder="personType == 'PJ' ? 'Digite a Razão social' : 'Digite seu nome'"
+          :placeholder="
+            personType == 'PJ' ? 'Digite a Razão social' : 'Digite seu nome'
+          "
           :rules="[isInvalid('name')]"
         />
       </div>
@@ -57,7 +59,9 @@
           v-model="item.alias"
           type="text"
           :placeholder="
-            personType == 'PJ' ? 'Digite o Nome fantasia' : 'Digite seu sobrenome'
+            personType == 'PJ'
+              ? 'Digite o Nome fantasia'
+              : 'Digite seu sobrenome'
           "
           :rules="[isInvalid('alias')]"
         />
@@ -74,13 +78,16 @@
       <div class="col-xs-12 q-mb-sm">
         <label class="q-input-label">Busca de endereço</label>
         <ListAutocomplete
+          :label="'Address'"
           :source="getGeoPlaces"
           :isLoading="isSearching"
           @selected="onSelect"
           placeholder="Digite o endereço completo (rua, número, bairro, CEP)"
         />
       </div>
-      <div class="col-xs-12 text-subtitle1 text-left">Ou digite os dados diretamente</div>
+      <div class="col-xs-12 text-subtitle1 text-left">
+        Ou digite os dados diretamente
+      </div>
     </div>
 
     <div v-if="hasCompanyField('address')" class="row q-col-gutter-sm q-pb-xs">
@@ -214,7 +221,7 @@
         type="submit"
         color="primary"
         icon="save"
-        :label="saveBtn"
+        label="Finalizar"
         :loading="isLoading"
         class="q-mt-md signup-submit-button"
       />
@@ -250,11 +257,6 @@ export default {
       type: String,
       required: false,
       default: "gmaps",
-    },
-    saveBtn: {
-      type: String,
-      required: false,
-      default: "Finalizar",
     },
   },
 
@@ -363,7 +365,7 @@ export default {
     getGeoPlaces(input) {
       this.isSearching = true;
 
-      return this.geoplace(input)
+      return this.geoplace({input})
         .then((result) => {
           if (result.success) {
             let items = [];
