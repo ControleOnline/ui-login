@@ -14,7 +14,7 @@ export const signIn = ({ commit }, values) => {
       return data;
     })
     .catch((e) => {
-      commit(types.SET_ERROR, e.message);
+      commit(types.LOGIN_SET_ERROR, e.message);
       throw e;
     })
     .finally(() => {
@@ -43,7 +43,7 @@ export const gSignIn = ({ commit }, values) => {
       return response;
     })
     .catch((e) => {
-      commit(types.SET_ERROR, e.message);
+      commit(types.LOGIN_SET_ERROR, e.message);
       throw e;
     })
     .finally(() => {
