@@ -56,7 +56,7 @@ export const signUp = ({ commit }, values) => {
   commit(types.LOGIN_SET_ISLOADING);
 
   return api
-    .fetch("accounts", { method: "POST", body: values })
+    .fetch("users/create-account", { method: "POST", body: values })
     .then((response) => {
       commit(types.LOGIN_SET_ISLOADING, false);
 
