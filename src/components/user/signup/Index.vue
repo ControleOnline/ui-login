@@ -1,61 +1,19 @@
 <template>
-  <div :class="'signup-page' + (background() !== null ? '' : ' ')" :style="style()">
-    <div class="signup-container">
-      <div class="text-right full-width">
-        <h5 class="signup-app-name">{{ $t("app.name") }}</h5>
-      </div>
-
-      <q-card class="signup-page-card">
-        <q-card-section>
-          <div class="text-h6">
-            <h4 class="signup-label">{{ $t("Crie sua conta") }}</h4>
-          </div>
-        </q-card-section>
-
-        <q-card-section>
-          <q-stepper v-if="userFields.length > 0 && companyFields.length > 0" animated alternative-labels header-nav flat
-            v-model="current" ref="stepper" color="primary" :vertical="$q.screen.lt.sm">
-            <q-step :header-nav="false" name="create_user" title="Informe seus dados de usuário" icon="face"
-              :done="steps.create_user.hasErrors === false" :error="steps.create_user.hasErrors === true">
-              <UserForm ref="userForm" :userFields="userFields" :contact="order.contact" @saved="goToNext" />
-            </q-step>
-
-            <q-step :header-nav="false" name="create_company" title="Cadastre seus dados comerciais" icon="business"
-              :done="steps.create_company.hasErrors === false" :error="steps.create_company.hasErrors === true">
-              <CompanyForm ref="companyForm" :companyFields="companyFields" :origin="order.address.origin"
-                @saved="goToNext" />
-            </q-step>
-          </q-stepper>
-
-          <UserForm v-else-if="userFields.length > 0" ref="userForm" :userFields="userFields" :contact="order.contact"
-            @saved="goToNext" />
-
-          <CompanyForm v-else-if="companyFields.length > 0" ref="companyForm" :companyFields="companyFields"
-            :origin="order.address.origin" @saved="goToNext" />
-        </q-card-section>
-
-        <label class="signin-link-label" v-if="$t('login.signinLabel') !== 'login.signinLabel'">
-          {{ $t("login.signinLabel") }}
-        </label>
-        <q-card-actions align="left" class="q-pa-md">
-          <a href="#" class="signin-link" @click="onSignIn">
-            {{ $t("login.signin") }}
-          </a>
-        </q-card-actions>
-      </q-card>
-    </div>
-  </div>
+  <UserForm
+    ref="userForm"
+    :userFields="userFields"
+    :contact="order.contact"
+    @saved="goToNext"
+  />
 </template>
 
 <script>
 import { mapGetters } from "vuex";
-import CompanyForm from "./Company";
 import UserForm from "./User";
 
 export default {
   components: {
     UserForm,
-    CompanyForm,
   },
 
   props: {
@@ -104,10 +62,7 @@ export default {
       newCompany: "people/company",
       signUpCustomBg: "auth/signUpCustomBg",
       defaultCompany: "people/defaultCompany",
-
     }),
-
-
 
     logged() {
       return this.$store.getters["auth/user"];
@@ -187,15 +142,15 @@ export default {
 
     background() {
       if (this.signUpCustomBg === true) {
-        return '//' + this.defaultCompany.theme.background.domain + this.defaultCompany.theme.background.url
+        return (
+          "//" +
+          this.defaultCompany.theme.background.domain +
+          this.defaultCompany.theme.background.url
+        );
       } else if (typeof this.signUpCustomBg === "string") {
         return this.signUpCustomBg;
       }
       return null;
-    },
-
-    onSignIn() {
-      this.$emit("signIn");
     },
   },
 };
