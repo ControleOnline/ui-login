@@ -9,7 +9,7 @@ export const signIn = ({ commit }, values) => {
 
   return api
     .fetch("token", { method: "POST", body: values })
-    .then((data) => {      
+    .then((data) => {
       commit(types.LOGIN_SET_USER, data);
       return data;
     })
@@ -38,7 +38,7 @@ export const gSignIn = ({ commit }, values) => {
 
   return api
     .fetch("oauth/google/return", { method: "POST", params: values })
-    .then((response) => {      
+    .then((response) => {
       commit(types.LOGIN_SET_USER, response.response.data);
       return response;
     })
@@ -64,20 +64,14 @@ export const signUp = ({ commit }, values) => {
     })
     .then((data) => {
       if (data.response) {
-        if (data.response.success === true)
-          commit(types.LOGIN_SET_CREATED, data);
-
+        if (data.response.success === true) commit(types.LOGIN_SET_USER, data.response.data);
         return data.response;
       }
 
       return null;
     })
-    .catch((e) => {
+    .finally(() => {
       commit(types.LOGIN_SET_ISLOADING, false);
-
-      if (e instanceof Error) throw new Error(e.errors._error);
-
-      throw new Error(e.message);
     });
 };
 
@@ -109,10 +103,5 @@ export const setIndexRoute = ({ commit }, indexRoute) => {
   commit(types.LOGIN_SET_INDEX_ROUTE, indexRoute);
 };
 
-export const setSignUpFields = ({ commit }, signUpFields) => {
-  commit(types.SIGN_UP_FIELDS, signUpFields);
-};
 
-export const setSignUpCustomBg = ({ commit }, signUpCustomBg) => {
-  commit(types.SIGN_UP_CUSTOM_BG, signUpCustomBg);
-};
+

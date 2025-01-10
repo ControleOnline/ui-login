@@ -113,7 +113,7 @@ export default {
     ...mapGetters({
       newUser: "auth/created",
       newCompany: "people/company",
-      signUpCustomBg: "auth/signUpCustomBg",
+
       defaultCompany: "people/defaultCompany",
       isLoading: "auth/isLoading",
       error: "auth/error",
@@ -125,13 +125,7 @@ export default {
       return this.$store.getters["auth/user"];
     },
 
-    userFields() {
-      return this.signUpFields?.username || [];
-    },
 
-    companyFields() {
-      return this.signUpFields?.company || [];
-    },
   },
 
   watch: {
@@ -165,24 +159,19 @@ export default {
       signup: "auth/signUp",
     }),
 
-    hasUserField(field) {
-      var fields = this.userFields || [];
-      return fields.indexOf(field) > -1;
-    },
-
     save() {
       this.signup({
         name: this.item.name,
         email: this.item.email,
         password: this.item.password,
-        confirmPassword: this.hasUserField("confirmPassword")
-          ? this.item.confirmPassword
-          : this.item.password,
+        confirmPassword: this.item.confirmPassword,
       })
         .then((response) => {
           let formHasErrors = !(response && response.success === true);
 
           if (formHasErrors) this.notifyError(response.error);
+
+          if (response.data) this.$emit("logged", response.data);
         })
         .catch((error) => {
           let formHasErrors = true;
@@ -226,18 +215,10 @@ export default {
         if (key == "password" && val.length < 6)
           return this.$tt("login", "label", "passMessage");
 
-        if (
-          key == "confirmEmail" &&
-          this.hasUserField("email") &&
-          this.item.email != this.item.confirmEmail
-        )
+        if (key == "confirmEmail" && this.item.email != this.item.confirmEmail)
           return this.$tt("login", "label", "passNoMatch");
 
-        if (
-          key == "confirm" &&
-          this.hasUserField("password") &&
-          this.item.password != this.item.confirmPassword
-        )
+        if (key == "confirm" && this.item.password != this.item.confirmPassword)
           return this.$tt("login", "label", "passNoMatch");
 
         return true;
@@ -282,16 +263,12 @@ export default {
     },
 
     background() {
-      if (this.signUpCustomBg === true) {
-        return (
-          "//" +
-          this.defaultCompany.theme.background.domain +
-          this.defaultCompany.theme.background.url
-        );
-      } else if (typeof this.signUpCustomBg === "string") {
-        return this.signUpCustomBg;
-      }
-      return null;
+      return (
+        "//" +
+        this.defaultCompany.theme.background.domain +
+        this.defaultCompany.theme.background.url
+      );
+
     },
   },
 };

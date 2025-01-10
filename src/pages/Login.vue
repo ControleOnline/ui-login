@@ -21,14 +21,14 @@
           <LoginPage
             v-if="$route.name == 'LoginIndex'"
             @logged="onLogged"
-            @signup="onSignUp"
+
           />
           <SignUpPage
             v-if="$route.name == 'CreateUserIndex'"
             @created="onCreated"
             @company="onCompany"
-            @registered="onRegistered"
-            :signUpFields="signUpFields"
+            @logged="onLogged"
+
             :defaultCompany="defaultCompany"
           />
           <RecoveryPassword v-if="$route.name == 'ForgotPassword'" />

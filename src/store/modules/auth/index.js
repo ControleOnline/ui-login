@@ -13,25 +13,7 @@ export default {
     created: null,
     isLoggedIn: false,
     indexRoute: 'HomeIndex',
-    signUpFields: {
-      user: [
-        'name',
-        'username',
-        'phone',
-        'email',
-        /*'confirmEmail',*/
-        'password',
-        'confirmPassword'
-      ],
-      company: [
-        'name',
-        'alias',
-        'document',
-        'address',
-        'origin'
-      ]
-    },
-    signUpCustomBg: false
+
   },
   actions,
   getters,
