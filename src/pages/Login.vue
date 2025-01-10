@@ -11,7 +11,9 @@
       <q-card class="q-mb-lg q-pa-md">
         <q-card-section class="q-pt-md">
           <div class="text-h6">
-            <h4 class="q-ma-none login-label">{{ $t("login.title") }}</h4>
+            <h4 class="q-ma-none login-label">
+              {{ $tt("login", "label", "title") }}
+            </h4>
           </div>
         </q-card-section>
 
@@ -38,7 +40,7 @@
             unelevated
             color="grey-7"
             outline
-            :label="$t('login.register')"
+            :label="$tt('login', 'label', 'register')"
             :to="{ name: 'CreateUserIndex' }"
           />
 
@@ -47,7 +49,7 @@
             unelevated
             color="grey-7"
             outline
-            :label="$t('login')"
+            :label="$tt('login', 'label', 'login')"
             :to="{ name: 'LoginIndex' }"
           />
 
@@ -58,7 +60,7 @@
               text-transform: none;
               text-decoration: underline;
             "
-            label="Esqueci a senha"
+            :label="$tt('login', 'label', 'forgotPassword')"
             flat
             :to="{ name: 'ForgotPassword' }"
           />

@@ -7,7 +7,7 @@
       ref="username"
       v-model="item.username"
       color="primary"
-      :label="$t('login.yourUser')"
+      :label="$tt('login', 'label', 'yourUser')"
     />
 
     <q-input
@@ -18,7 +18,7 @@
       id="inputPassword"
       ref="password"
       v-model="item.password"
-      :label="$t('login.yourPass')"
+      :label="$tt('login', 'label', 'yourPass')"
     >
       <template v-slot:append>
         <q-icon
@@ -35,7 +35,7 @@
         color="primary"
         :loading="isLoading"
         type="submit"
-        :label="$t('login.send')"
+        :label="$tt('login', 'label', 'send')"
       />
     </div>
   </q-form>
@@ -73,7 +73,7 @@ export default {
         .then(() => {})
         .catch((error) => {
           this.$q.notify({
-            message: this.$t("login.invalidUserMessage"),
+            message: this.$tt("login", "message", "invalidUserMessage"),
             position: "bottom",
             type: "negative",
           });
@@ -82,10 +82,11 @@ export default {
 
     isInvalid(key) {
       return (val) => {
-        if (!(val && val.length > 0)) return this.$t("messages.fieldRequired");
+        if (!(val && val.length > 0))
+          return this.$tt("login", "message", "fieldRequired");
 
         if (key == "password" && val.length < 6)
-          return this.$t("login.passMessage");
+          return this.$tt("login", "message", "passMessage");
 
         return true;
       };
