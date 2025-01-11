@@ -9,7 +9,6 @@
   </div>
 </template>
 <script>
-import { mapActions, mapGetters } from "vuex";
 
 import Google from "./Google.vue";
 
