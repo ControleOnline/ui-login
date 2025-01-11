@@ -11,11 +11,11 @@
 <script>
 import { mapActions, mapGetters } from "vuex";
 
-import Oauth from "./google/Signin.vue";
+import Glogin from "./google/Signin.vue";
 
 export default {
   components: {
-    Oauth,
+    Glogin,
   },
   data() {
     return {
