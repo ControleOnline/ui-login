@@ -44,12 +44,8 @@
 <script>
 import { mapActions, mapGetters } from "vuex";
 
-import Oauth from "../../oauth";
-
 export default {
-  components: {
-    Oauth,
-  },
+  components: {},
 
   data() {
     return {

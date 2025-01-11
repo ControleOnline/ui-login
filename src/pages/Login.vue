@@ -18,17 +18,12 @@
         </q-card-section>
 
         <q-card-section>
-          <LoginPage
-            v-if="$route.name == 'LoginIndex'"
-            @logged="onLogged"
-
-          />
+          <LoginPage v-if="$route.name == 'LoginIndex'" @logged="onLogged" />
           <SignUpPage
             v-if="$route.name == 'CreateUserIndex'"
             @created="onCreated"
             @company="onCompany"
             @logged="onLogged"
-
             :defaultCompany="defaultCompany"
           />
           <RecoveryPassword v-if="$route.name == 'ForgotPassword'" />
@@ -77,6 +72,7 @@ import { mapActions, mapGetters } from "vuex";
 import LoginPage from "../components/user/login";
 import SignUpPage from "../components/user/signup";
 import RecoveryPassword from "../components/user/recovery";
+import Oauth from "../components/oauth";
 
 export default {
   name: "PageIndex",
@@ -85,6 +81,7 @@ export default {
     LoginPage,
     SignUpPage,
     RecoveryPassword,
+    Oauth,
   },
 
   data() {
