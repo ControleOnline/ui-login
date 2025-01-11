@@ -3,7 +3,7 @@
     <div class="separator">{{ $tt("login", "message", "or") }}</div>
     <div class="row q-px-md q-gutter-y-sm q-pa-lg">
       <div class="row col-5"></div>
-      <Glogin />
+      <Google />
       <div class="row col-5"></div>
     </div>
   </div>
@@ -11,11 +11,11 @@
 <script>
 import { mapActions, mapGetters } from "vuex";
 
-import Glogin from "./google/Signin.vue";
+import Google from "./Google.vue";
 
 export default {
   components: {
-    Glogin,
+    Google,
   },
   data() {
     return {

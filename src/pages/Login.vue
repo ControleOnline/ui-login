@@ -72,7 +72,7 @@ import { mapActions, mapGetters } from "vuex";
 import LoginPage from "../components/user/login";
 import SignUpPage from "../components/user/signup";
 import RecoveryPassword from "../components/user/recovery";
-import Oauth from "../components/oauth";
+import Oauth from "../components/oauth/Oauth";
 
 export default {
   name: "PageIndex",
