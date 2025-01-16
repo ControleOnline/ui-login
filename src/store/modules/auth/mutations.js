@@ -15,7 +15,7 @@ export default {
           roles: payload.roles,
           company: payload.company,
           realname: payload.realname,
-          avatar: payload.avatar,
+          avatar: payload.avatar.domain + payload.avatar.url,
           email: payload.email,
           phone: payload.phone,
           active: payload.active,
@@ -77,6 +77,4 @@ export default {
   [types.LOGIN_SET_INDEX_ROUTE](state, indexRoute) {
     Object.assign(state, { indexRoute });
   },
-
-
 };
