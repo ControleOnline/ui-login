@@ -15,7 +15,7 @@ export default {
           roles: payload.roles,
           company: payload.company,
           realname: payload.realname,
-          avatar: payload.avatar.domain + payload.avatar.url,
+          avatar: payload.avatar?.domain + payload.avatar?.url,
           email: payload.email,
           phone: payload.phone,
           active: payload.active,
@@ -40,7 +40,9 @@ export default {
       }
 
       Object.assign(state, { user: _user });
-    } catch (e) {}
+    } catch (e) {
+      LocalStorage.remove("session");
+    }
   },
 
   SET_PEOPLE_STATUS(state, payload) {
