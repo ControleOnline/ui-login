@@ -2,81 +2,42 @@ import { LocalStorage } from "quasar";
 import * as types from "./mutation_types";
 
 export default {
-  [types.LOGIN_SET_USER](state, payload = null) {
-    try {
-      let _user = payload;
+  [types.LOGIN_SET_USER](state, payload) {
+    let user = payload?.user || payload;
 
-      if (payload !== null && payload.api_key) {
-        _user = {
-          username: payload.username,
-          token: payload.api_key,
-          people: payload.people,
-          id: payload.id,
-          roles: payload.roles,
-          company: payload.company,
-          realname: payload.realname,
-          avatar: payload.avatar?.domain + payload.avatar?.url,
-          email: payload.email,
-          phone: payload.phone,
-          active: payload.active,
-          type: payload.type,
-        };
-
-        // save user data in LocalStorage
-        let session = LocalStorage.has("session")
-          ? LocalStorage.getItem("session")
-          : {};
-
-        session = _user;
-
-        LocalStorage.set("session", session);
-      }
-
-      if (_user === null) {
-        LocalStorage.remove("session");
-        state.isLoggedIn = false;
-      } else {
-        state.isLoggedIn = true;
-      }
-
-      Object.assign(state, { user: _user });
-    } catch (e) {
+    if (!user) {
       LocalStorage.remove("session");
+      state.isLoggedIn = false;
+    } else {
+      LocalStorage.set("session", user);
+      state.isLoggedIn = true;
     }
+    if (!payload?.user) Object.assign(state, { user });
+    return { ...state, user: user };
   },
 
-  SET_PEOPLE_STATUS(state, payload) {
-    try {
-      const session = LocalStorage.has("session")
-        ? LocalStorage.getItem("session")
-        : {};
-
-      session.active = payload.active;
-      session.type = payload.type;
-
-      LocalStorage.set("session", session);
-
-      if (payload === null) {
-        LocalStorage.remove("session");
-      }
-
-      state.isLoggedIn = payload.active;
-      state.user = session;
-    } catch (e) {}
+  [types.SET_PEOPLE_STATUS](state, payload) {
+    if (!payload?.peopleStatus) Object.assign(state, { peopleStatus: payload });
+    return { ...state, isLoading: payload.peopleStatus || payload };
   },
 
-  [types.LOGIN_SET_ERROR](state, error) {
-    Object.assign(state, { error });
+  [types.LOGIN_SET_ERROR](state, payload) {
+    if (!payload?.error) Object.assign(state, { payload });
+    return { ...state, error: payload.error || payload };
   },
 
-  [types.LOGIN_SET_ISLOADING](state, isLoading = true) {
-    Object.assign(state, { isLoading: isLoading });
+  [types.LOGIN_SET_ISLOADING](state, payload = true) {
+    if (!payload?.isLoading) Object.assign(state, { payload });
+    return { ...state, isLoading: payload.isLoading || payload };
   },
 
-  [types.LOGIN_SET_VIOLATIONS](state, violations) {
-    Object.assign(state, { violations });
+  [types.LOGIN_SET_VIOLATIONS](state, payload) {
+    if (!payload?.violations) Object.assign(state, { violations: payload });
+    return { ...state, violations: payload.violations || payload };
   },
-  [types.LOGIN_SET_INDEX_ROUTE](state, indexRoute) {
-    Object.assign(state, { indexRoute });
+
+  [types.LOGIN_SET_INDEX_ROUTE](state, payload) {
+    if (!payload?.indexRoute) Object.assign(state, { indexRoute: payload });
+    return { ...state, indexRoute: state.indexRoute || payload };
   },
 };

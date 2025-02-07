@@ -79,20 +79,10 @@ export const signUp = ({ commit }, values) => {
  * Do login with just created user
  */
 export const logIn = ({ commit, state }, user = null) => {
-  let data = user;
+  console.log(user);
 
-  if (data === null && state.created !== null)
-    data = {
-      api_key: state.created.token,
-      username: state.created.username,
-      people: state.created.people,
-      roles: "",
-      company: state.created.company,
-    };
 
-  if (data === null) throw new Error("Can not signin without a user");
-
-  commit(types.LOGIN_SET_USER, data);
+  commit(types.LOGIN_SET_USER, user);
 };
 
 export const logOut = ({ commit }) => {

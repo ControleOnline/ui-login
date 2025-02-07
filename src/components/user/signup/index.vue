@@ -130,10 +130,10 @@ export default {
 
   watch: {
     newUser(user) {
-      if (user && user.token) this.$emit("created", user);
+      if (user && user.api_key) this.$emit("created", user);
     },
     created(newUser) {
-      if (newUser && newUser.token) {
+      if (newUser && newUser.api_key) {
         this.$emit("saved", false);
       }
     },
