@@ -227,7 +227,7 @@ export default {
     isLogged() {
       return (
         this.$store.getters["auth/user"] !== null &&
-        this.$store.getters["auth/user"].username
+        this.$store.getters["auth/user"].api_key
       );
     },
     goToNext(formHasErrors) {
