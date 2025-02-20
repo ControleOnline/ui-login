@@ -93,14 +93,10 @@ export default {
       indexRoute: "auth/indexRoute",
       defaultCompany: "people/defaultCompany",
     }),
-
-    logged() {
-      return this.$store.getters["auth/user"];
-    },
   },
 
   mounted() {
-    if (this.isLogged()) {
+    if (this.$auth.isLogged) {
       if (this.$route.query.redirect) {
         this.$router.push(this.$route.query.redirect);
       } else {
@@ -110,12 +106,6 @@ export default {
   },
 
   methods: {
-    isLogged() {
-      return (
-        this.$store.getters["auth/user"] !== null &&
-        this.$store.getters["auth/user"].api_key
-      );
-    },
     goToIndexRoute() {
       this.$router.push({ name: "HomeIndex" });
     },
@@ -123,7 +113,7 @@ export default {
     // when user logged is succeeded
 
     onLogged(user) {
-      if (this.isLogged()) {
+      if (this.$auth.isLogged) {
         if (this.$route.query.redirect) {
           this.$router.push(this.$route.query.redirect);
         } else {

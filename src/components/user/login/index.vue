@@ -118,8 +118,8 @@ export default {
 
     user(user) {
       if (!user) return;
-      if (this.$store.getters["auth/user"] !== null) {
-        this.onAuthenticated(this.$store.getters["auth/user"]);
+      if (this.$auth.isLogged) {
+        this.onAuthenticated(this.$auth.user);
       }
     },
   },

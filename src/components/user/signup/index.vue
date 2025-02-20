@@ -104,7 +104,7 @@ export default {
   components: {},
 
   created() {
-    if (this.isLogged() && this.logged.company === null) {
+    if (this.this.$auth.isLogged() && this.$auth.user.company === null) {
       this.current = "create_company";
     }
   },
@@ -121,9 +121,7 @@ export default {
       created: "auth/created",
     }),
 
-    logged() {
-      return this.$store.getters["auth/user"];
-    },
+   
 
 
   },
@@ -224,12 +222,7 @@ export default {
         return true;
       };
     },
-    isLogged() {
-      return (
-        this.$store.getters["auth/user"] !== null &&
-        this.$store.getters["auth/user"].api_key
-      );
-    },
+   
     goToNext(formHasErrors) {
       this.steps[this.current].hasErrors = formHasErrors;
 
