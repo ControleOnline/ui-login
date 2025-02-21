@@ -88,12 +88,14 @@ export default {
       };
     },
     onAuthenticated(user) {
+      this.$auth.persist(user);
       this.$emit("logged", user);
     },
   },
 
   computed: {
     ...mapGetters({
+      user: "auth/user",
       isLoggedIn: "auth/isLoggedIn",
       isLoading: "auth/isLoading",
       error: "auth/error",
@@ -111,15 +113,13 @@ export default {
   watch: {
     isLoggedIn: function (isLoggedIn) {
       if (isLoggedIn === true) {
-        this.onAuthenticated(this.$auth.user);
+        this.onAuthenticated(this.user);
       }
     },
 
     user(user) {
       if (!user) return;
-      if (this.$auth.isLogged) {
-        this.onAuthenticated(this.$auth.user);
-      }
+      this.onAuthenticated(user);
     },
   },
 };
