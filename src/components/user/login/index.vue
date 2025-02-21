@@ -94,7 +94,6 @@ export default {
 
   computed: {
     ...mapGetters({
-      user: "auth/user",
       isLoggedIn: "auth/isLoggedIn",
       isLoading: "auth/isLoading",
       error: "auth/error",
@@ -112,7 +111,7 @@ export default {
   watch: {
     isLoggedIn: function (isLoggedIn) {
       if (isLoggedIn === true) {
-        this.onAuthenticated(this.user);
+        this.onAuthenticated(this.$auth.user);
       }
     },
 

@@ -1,4 +1,5 @@
-import { api } from "@controleonline/../../src/boot/api";
+import { api } from "@controleonline/ui-common/src/api";
+
 
 import * as types from "./mutation_types";
 import { LocalStorage } from "quasar";
