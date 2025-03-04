@@ -6,6 +6,8 @@ import mutations from "./mutations";
 export default {
   namespaced: true,
   state: {
+ item:{},
+items:[],
     user: LocalStorage.getItem("session") || {},
     isLoading: false,
     error: "",
