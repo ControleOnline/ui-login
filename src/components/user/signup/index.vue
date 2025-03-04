@@ -113,17 +113,12 @@ export default {
     ...mapGetters({
       newUser: "auth/created",
       newCompany: "people/company",
-
       defaultCompany: "people/defaultCompany",
       isLoading: "auth/isLoading",
       error: "auth/error",
       violations: "auth/violations",
       created: "auth/created",
     }),
-
-   
-
-
   },
 
   watch: {
@@ -222,7 +217,7 @@ export default {
         return true;
       };
     },
-   
+
     goToNext(formHasErrors) {
       this.steps[this.current].hasErrors = formHasErrors;
 
@@ -261,7 +256,6 @@ export default {
         this.defaultCompany.theme.background.domain +
         this.defaultCompany.theme.background.url
       );
-
     },
   },
 };
