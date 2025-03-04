@@ -6,14 +6,12 @@ import mutations from "./mutations";
 export default {
   namespaced: true,
   state: {
- item:{},
-items:[],
     user: LocalStorage.getItem("session") || {},
     isLoading: false,
+    isLoggedIn: false,
     error: "",
     violations: null,
     created: null,
-    isLoggedIn: false,
     indexRoute: "HomeIndex",
   },
   actions,

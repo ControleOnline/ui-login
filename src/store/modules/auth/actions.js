@@ -1,6 +1,5 @@
 import { api } from "@controleonline/ui-common/src/api";
 
-
 import * as types from "./mutation_types";
 import { LocalStorage } from "quasar";
 
@@ -12,6 +11,7 @@ export const signIn = ({ commit }, values) => {
     .fetch("token", { method: "POST", body: values })
     .then((data) => {
       commit(types.LOGIN_SET_USER, data);
+      commit(types.LOGIN_SET_IS_LOGGED_IN, true);
       return data;
     })
     .catch((e) => {
@@ -41,6 +41,7 @@ export const gSignIn = ({ commit }, values) => {
     .fetch("oauth/google/return", { method: "POST", params: values })
     .then((response) => {
       commit(types.LOGIN_SET_USER, response.response.data);
+      commit(types.LOGIN_SET_IS_LOGGED_IN, true);
       return response;
     })
     .catch((e) => {
@@ -65,7 +66,9 @@ export const signUp = ({ commit }, values) => {
     })
     .then((data) => {
       if (data.response) {
-        if (data.response.success === true) commit(types.LOGIN_SET_USER, data.response.data);
+        if (data.response.success === true)
+          commit(types.LOGIN_SET_USER, data.response.data);
+        commit(types.LOGIN_SET_IS_LOGGED_IN, true);
         return data.response;
       }
 
@@ -80,19 +83,15 @@ export const signUp = ({ commit }, values) => {
  * Do login with just created user
  */
 export const logIn = ({ commit, state }, user = null) => {
-  console.log(user);
-
-
   commit(types.LOGIN_SET_USER, user);
+  commit(types.LOGIN_SET_IS_LOGGED_IN, true);
 };
 
 export const logOut = ({ commit }) => {
   commit(types.LOGIN_SET_USER, null);
+  commit(types.LOGIN_SET_IS_LOGGED_IN, false);
 };
 
 export const setIndexRoute = ({ commit }, indexRoute) => {
   commit(types.LOGIN_SET_INDEX_ROUTE, indexRoute);
 };
-
-
-
