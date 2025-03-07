@@ -104,7 +104,7 @@ export default {
   components: {},
 
   created() {
-    if (this.this.$auth.isLogged() && this.$auth.user.company === null) {
+    if (this.$auth.isLogged() && this.$auth.user.company === null) {
       this.current = "create_company";
     }
   },
