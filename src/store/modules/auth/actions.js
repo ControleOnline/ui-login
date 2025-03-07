@@ -1,5 +1,4 @@
 import { api } from "@controleonline/ui-common/src/api";
-
 import * as types from "./mutation_types";
 import { LocalStorage } from "quasar";
 
@@ -90,6 +89,7 @@ export const logIn = ({ commit, state }, user = null) => {
 export const logOut = ({ commit }) => {
   commit(types.LOGIN_SET_USER, null);
   commit(types.LOGIN_SET_IS_LOGGED_IN, false);
+  LocalStorage.clear();
 };
 
 export const setIndexRoute = ({ commit }, indexRoute) => {

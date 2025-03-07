@@ -4,7 +4,7 @@ import * as types from "./mutation_types";
 export default {
   [types.LOGIN_SET_USER](state, user) {
     if (!user) {
-      LocalStorage.remove("session");
+      LocalStorage.clear();
       state.isLoggedIn = false;
     } else {
       LocalStorage.set("session", user);
