@@ -21,7 +21,6 @@ export default function SignIn({navigation}) {
   const checkIfLoggedIn = async () => {
     try {
       const userDataString =  localStorage.getItem('session');
-      console.log('login', userDataString);
       if (userDataString) {
         const userData = JSON.parse(userDataString);
         if (userData.active === 1) {
