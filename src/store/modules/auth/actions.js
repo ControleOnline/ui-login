@@ -24,7 +24,7 @@ export const signIn = ({commit}, values) => {
 export const getUserStatus = ({commit}, values) => {
   if (!localStorage.getItem('session')) return;
 
-  let session = localStorage.getItem('session');
+  let session = JSON.parse(localStorage.getItem("session")) || {};
 
   api.fetch(`people/${session.people}/status`, {}).then(response => {
     commit('SET_PEOPLE_STATUS', response.response.data);

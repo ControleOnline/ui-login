@@ -121,7 +121,7 @@ export default {
 
     onCompany(company) {
       if (localStorage.getItem("session")) {
-        let storedUser =localStorage.getItem("session");
+        let storedUser = JSON.parse(localStorage.getItem("session")) || {};
 
         if (!storedUser.company) {
           storedUser.company = company.id;
