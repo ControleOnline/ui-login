@@ -22,9 +22,9 @@ export const signIn = ({commit}, values) => {
 };
 
 export const getUserStatus = ({commit}, values) => {
-  if (!localStorage.getItem('session')) return;
+  if (!LocalStorage.getItem('session')) return;
 
-  let session = localStorage.getItem('session');
+  let session = LocalStorage.getItem('session');
 
   api.fetch(`people/${session.people}/status`, {}).then(response => {
     commit('SET_PEOPLE_STATUS', response.response.data);
@@ -83,7 +83,7 @@ export const logIn = ({commit, state}, user = null) => {
 export const logOut = ({commit}) => {
   commit(types.LOGIN_SET_USER, null);
   commit(types.LOGIN_SET_IS_LOGGED_IN, false);
-  localStorage.clear();
+  LocalStorage.clear();
 };
 
 export const setIndexRoute = ({commit}, indexRoute) => {

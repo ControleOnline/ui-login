@@ -120,13 +120,13 @@ export default {
     },
 
     onCompany(company) {
-      if (localStorage.getItem("session")) {
-        let storedUser =localStorage.getItem("session");
+      if (LocalStorage.getItem("session")) {
+        let storedUser =LocalStorage.getItem("session");
 
         if (!storedUser.company) {
           storedUser.company = company.id;
 
-          localStorage.setItem("session", JSON.stringify(storedUser));
+          LocalStorage.setItem("session", JSON.stringify(storedUser));
         }
       }
     },
