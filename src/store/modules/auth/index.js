@@ -5,7 +5,7 @@ import mutations from './mutations';
 export default {
   namespaced: true,
   state: {
-    user: LocalStorage.getItem('session'),
+    user: localStorage.getItem('session'),
     isLoading: false,
     isLoggedIn: false,
     error: '',

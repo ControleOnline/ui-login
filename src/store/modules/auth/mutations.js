@@ -3,10 +3,10 @@ import * as types from './mutation_types';
 export default {
   [types.LOGIN_SET_USER](state, user) {
     if (!user) {
-      LocalStorage.clear();
+      localStorage.clear();
       state.isLoggedIn = false;
     } else {
-      LocalStorage.setItem('session', JSON.stringify(user));
+      localStorage.setItem('session', JSON.stringify(user));
       state.isLoggedIn = true;
     }
     state.user = user || {};
