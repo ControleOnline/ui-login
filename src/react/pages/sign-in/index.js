@@ -9,7 +9,6 @@ import {
   SafeAreaView,
 } from 'react-native';
 import * as Animatable from 'react-native-animatable';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function SignIn({navigation}) {
   const [username, setUsername] = useState('');
@@ -21,7 +20,8 @@ export default function SignIn({navigation}) {
 
   const checkIfLoggedIn = async () => {
     try {
-      const userDataString = await AsyncStorage.getItem('session');
+      const userDataString =  localStorage.getItem('session');
+      console.log('login', userDataString);
       if (userDataString) {
         const userData = JSON.parse(userDataString);
         if (userData.active === 1) {
@@ -42,7 +42,8 @@ export default function SignIn({navigation}) {
     api
       .post('/token', payload)
       .then(response => {
-        AsyncStorage.setItem('session', JSON.stringify(response))
+        localStorage
+          .setItem('session', JSON.stringify(response))
           .then(() => {
             navigation.navigate('HomePage');
           })
