@@ -20,7 +20,7 @@ export default function SignIn({navigation}) {
 
   const checkIfLoggedIn = async () => {
     try {
-      const userDataString =  localStorage.getItem('session');
+      const userDataString = localStorage.getItem('session');
       if (userDataString) {
         const userData = JSON.parse(userDataString);
         if (userData.active === 1) {
