@@ -78,9 +78,14 @@ export const logIn = ({commit, state}, user = null) => {
   commit(types.LOGIN_SET_IS_LOGGED_IN, true);
 };
 
+export const isLogged = ({commit, state}) => {
+  let user = getLoggedUser({commit, state});
+  logIn({commit, state}, user);
+  return user?.active;
+};
 
-export const getLoggedUser = ({commit, state}, user = null) => {
-  return localStorage.getItem('session');
+export const getLoggedUser = ({commit, state}) => {
+  return JSON.parse(localStorage.getItem('session') || '{}');
 };
 
 export const logOut = ({commit}) => {

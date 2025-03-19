@@ -10,29 +10,21 @@ import {
 } from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import {getStore} from '@store';
+import {isLoggedIn} from '../../../store/modules/auth/getters';
 
 export default function SignIn({navigation}) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const {actions} = getStore('auth');
+  const {getters, actions} = getStore('auth');
+  const {isLoggedIn} = getters;
 
   useEffect(() => {
-    checkIfLoggedIn();
-  }, []);
+    if (isLoggedIn) navigation.navigate('HomePage');
+  }, [isLoggedIn]);
 
-  const checkIfLoggedIn = async () => {
-    try {
-      const userDataString = localStorage.getItem('session');
-      if (userDataString) {
-        const userData = JSON.parse(userDataString);
-        if (userData.active === 1) {
-          navigation.navigate('HomePage');
-        }
-      }
-    } catch (error) {
-      console.error('Erro ao verificar se o usuário está logado:', error);
-    }
-  };
+  useEffect(() => {
+    actions.isLogged();
+  }, []);
 
   const handleSignIn = () => {
     actions

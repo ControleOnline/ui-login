@@ -13,7 +13,7 @@ const CheckLogin = () => {
         index: 0,
         routes: [{name: 'SignInPage'}],
       });
-  }, [isLoggedIn]);
+  }, [isLoggedIn,user]);
 
   return <></>;
 };
