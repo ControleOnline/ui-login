@@ -75,13 +75,12 @@ export const signUp = ({commit}, values) => {
 export const logIn = ({commit, state}, user = null) => {
   localStorage.setItem('session', JSON.stringify(user));
   commit(types.LOGIN_SET_USER, user);
-  commit(types.LOGIN_SET_IS_LOGGED_IN, true);
+  commit(types.LOGIN_SET_IS_LOGGED_IN, user?.active ? true : false);
 };
 
 export const isLogged = ({commit, state}) => {
   let user = getLoggedUser({commit, state});
-  logIn({commit, state}, user);
-  return user?.active;
+  return user?.active ? true : false;
 };
 
 export const getLoggedUser = ({commit, state}) => {
