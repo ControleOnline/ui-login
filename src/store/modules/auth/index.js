@@ -4,11 +4,11 @@ import mutations from './mutations';
 export default {
   namespaced: true,
   state: {
-    user: JSON.parse(localStorage.getItem('session')) || {},
+    user: {},
     isLoading: false,
     isLoggedIn: false,
     error: '',
-    
+
     created: null,
     indexRoute: 'HomeIndex',
   },

@@ -9,10 +9,12 @@ import {
   SafeAreaView,
 } from 'react-native';
 import * as Animatable from 'react-native-animatable';
+import {getStore} from '@store';
 
 export default function SignIn({navigation}) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const {actions} = getStore('auth');
 
   useEffect(() => {
     checkIfLoggedIn();
@@ -33,25 +35,13 @@ export default function SignIn({navigation}) {
   };
 
   const handleSignIn = () => {
-    const payload = {
-      username: username,
-      password: password,
-    };
-
-    api
-      .post('/token', payload)
-      .then(response => {
-        localStorage
-          .setItem('session', JSON.stringify(response))
-          .then(() => {
-            navigation.navigate('HomePage');
-          })
-          .catch(error => {
-            console.log(error);
-          });
+    actions
+      .signIn({
+        username: username,
+        password: password,
       })
-      .catch(error => {
-        console.log(error);
+      .then(data => {
+        navigation.navigate('HomePage');
       });
   };
 

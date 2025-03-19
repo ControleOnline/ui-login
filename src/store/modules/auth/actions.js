@@ -1,15 +1,14 @@
 import {api} from '@controleonline/ui-common/src/api';
 import * as types from './mutation_types';
 
-export const signIn = ({commit}, values) => {
+export const signIn = ({commit, state}, values) => {
   commit(types.LOGIN_SET_ERROR, '');
   commit(types.LOGIN_SET_ISLOADING);
 
   return api
     .fetch('token', {method: 'POST', body: values})
     .then(data => {
-      commit(types.LOGIN_SET_USER, data);
-      commit(types.LOGIN_SET_IS_LOGGED_IN, true);
+      logIn({commit, state}, data);
       return data;
     })
     .catch(e => {
@@ -24,7 +23,7 @@ export const signIn = ({commit}, values) => {
 export const getUserStatus = ({commit}, values) => {
   if (!localStorage.getItem('session')) return;
 
-  let session = JSON.parse(localStorage.getItem("session")) || {};
+  let session = JSON.parse(localStorage.getItem('session')) || {};
 
   api.fetch(`people/${session.people}/status`, {}).then(response => {
     commit('SET_PEOPLE_STATUS', response.response.data);
@@ -38,8 +37,7 @@ export const gSignIn = ({commit}, values) => {
   return api
     .fetch('oauth/google/return', {method: 'POST', params: values})
     .then(response => {
-      commit(types.LOGIN_SET_USER, response.response.data);
-      commit(types.LOGIN_SET_IS_LOGGED_IN, true);
+      logIn({commit, state}, response.response.data);
       return response;
     })
     .catch(e => {
@@ -64,8 +62,7 @@ export const signUp = ({commit}, values) => {
     .then(data => {
       if (data.response) {
         if (data.response.success === true)
-          commit(types.LOGIN_SET_USER, data.response.data);
-        commit(types.LOGIN_SET_IS_LOGGED_IN, true);
+          logIn({commit, state}, response.response.data);
         return data.response;
       }
       return null;
@@ -76,8 +73,14 @@ export const signUp = ({commit}, values) => {
 };
 
 export const logIn = ({commit, state}, user = null) => {
+  localStorage.setItem('session', JSON.stringify(user));
   commit(types.LOGIN_SET_USER, user);
   commit(types.LOGIN_SET_IS_LOGGED_IN, true);
+};
+
+
+export const getLoggedUser = ({commit, state}, user = null) => {
+  return localStorage.getItem('session');
 };
 
 export const logOut = ({commit}) => {
