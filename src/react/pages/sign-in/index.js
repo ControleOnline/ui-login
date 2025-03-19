@@ -1,16 +1,15 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState,  useCallback} from 'react';
 import {
   StyleSheet,
   Text,
   TextInput,
-  View,
-  Image,
   TouchableOpacity,
   SafeAreaView,
 } from 'react-native';
 import * as Animatable from 'react-native-animatable';
+import {useNavigation, useFocusEffect} from '@react-navigation/native';
+
 import {getStore} from '@store';
-import {isLoggedIn} from '../../../store/modules/auth/getters';
 
 export default function SignIn({navigation}) {
   const [username, setUsername] = useState('');
@@ -18,13 +17,17 @@ export default function SignIn({navigation}) {
   const {getters, actions} = getStore('auth');
   const {isLoggedIn} = getters;
 
-  useEffect(() => {
-    if (isLoggedIn) navigation.navigate('HomePage');
-  }, [isLoggedIn]);
+  useFocusEffect(
+    useCallback(() => {
+      if (isLoggedIn) navigation.navigate('HomePage');
+    }, [isLoggedIn]),
+  );
 
-  useEffect(() => {
-    actions.isLogged();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      actions.isLogged();
+    }, []),
+  );
 
   const handleSignIn = () => {
     actions
