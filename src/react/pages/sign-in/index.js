@@ -48,13 +48,13 @@ export default function SignIn({navigation}) {
         style={styles.containerLogin}>
         <TextInput
           placeholderTextColor="#666"
-          style={styles.textInput}
+          style={[styles.textInput,{color:"#666"}]}
           placeholder="Usuário"
           onChangeText={text => setUsername(text)}
         />
         <TextInput
           placeholderTextColor="#666"
-          style={styles.textInput}
+          style={[styles.textInput,{color:"#666"}]}
           placeholder="Senha"
           secureTextEntry={true}
           onChangeText={text => setPassword(text)}
