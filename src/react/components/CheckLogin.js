@@ -8,7 +8,6 @@ const CheckLogin = () => {
   const {user, isLoggedIn} = authGetters;
 
   useEffect(() => {
-    console.log(authActions.isLogged());
     if (!authActions.isLogged())
       navigation.reset({
         index: 0,
