@@ -1,4 +1,4 @@
-import React, {useState,  useCallback} from 'react';
+import React, {useState, useCallback} from 'react';
 import {
   StyleSheet,
   Text,
@@ -19,14 +19,8 @@ export default function SignIn({navigation}) {
 
   useFocusEffect(
     useCallback(() => {
-      if (isLoggedIn) navigation.navigate('HomePage');
+      if (actions.isLogged()) navigation.navigate('HomePage');
     }, [isLoggedIn]),
-  );
-
-  useFocusEffect(
-    useCallback(() => {
-      actions.isLogged();
-    }, []),
   );
 
   const handleSignIn = () => {
@@ -53,11 +47,13 @@ export default function SignIn({navigation}) {
         delay={600}
         style={styles.containerLogin}>
         <TextInput
+          placeholderTextColor="#666"
           style={styles.textInput}
           placeholder="Usuário"
           onChangeText={text => setUsername(text)}
         />
         <TextInput
+          placeholderTextColor="#666"
           style={styles.textInput}
           placeholder="Senha"
           secureTextEntry={true}
