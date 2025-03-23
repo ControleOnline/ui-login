@@ -8,7 +8,6 @@ export default {
     isLoading: false,
     isLoggedIn: false,
     error: '',
-
     created: null,
     indexRoute: 'HomeIndex',
   },
