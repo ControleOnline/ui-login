@@ -6,7 +6,7 @@ export default {
   state: {
     user: {},
     isLoading: false,
-    isLoggedIn: false,
+    isLogged: false,
     error: '',
     created: null,
     indexRoute: 'HomeIndex',

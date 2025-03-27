@@ -5,7 +5,7 @@ import {getStore} from '@store';
 const CheckLogin = () => {
   const navigation = useNavigation();
   const {getters: authGetters, actions: authActions} = getStore('auth');
-  const {user, isLoggedIn} = authGetters;
+  const {user, isLogged} = authGetters;
 
   useEffect(() => {
     if (!authActions.isLogged())
@@ -13,7 +13,7 @@ const CheckLogin = () => {
         index: 0,
         routes: [{name: 'SignInPage'}],
       });
-  }, [isLoggedIn, user]);
+  }, [isLogged, user]);
 
   return <></>;
 };

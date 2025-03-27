@@ -15,12 +15,12 @@ export default function SignIn({navigation}) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const {getters, actions} = getStore('auth');
-  const {isLoggedIn} = getters;
+  const {isLogged} = getters;
 
   useFocusEffect(
     useCallback(() => {
       if (actions.isLogged()) navigation.navigate('HomePage');
-    }, [isLoggedIn]),
+    }, [isLogged]),
   );
 
   const handleSignIn = () => {

@@ -18,12 +18,11 @@
         </q-card-section>
 
         <q-card-section>
-          <LoginPage v-if="$route.name == 'LoginIndex'" @logged="onLogged" />
+          <LoginPage v-if="$route.name == 'LoginIndex'" />
           <SignUpPage
             v-if="$route.name == 'CreateUserIndex'"
             @created="onCreated"
             @company="onCompany"
-            @logged="onLogged"
             :defaultCompany="defaultCompany"
           />
           <RecoveryPassword v-if="$route.name == 'ForgotPassword'" />
@@ -91,26 +90,23 @@ export default {
     ...mapGetters({
       indexRoute: "auth/indexRoute",
       defaultCompany: "people/defaultCompany",
+      isLogged: "auth/isLogged",
     }),
   },
 
   mounted() {
-    if (this.$auth.isLogged) {
-      if (this.$route.query.redirect) {
-        this.$router.push(this.$route.query.redirect);
-      } else {
-        this.goToIndexRoute();
-      }
-    }
+    this.onLogged();
   },
 
   methods: {
     goToIndexRoute() {
       this.$router.push({ name: "HomeIndex" });
     },
-
-    onLogged(user) {
-      if (this.$auth.isLogged) {
+    onLogged() {
+      if (
+        this.isLogged &&
+        this.$router.currentRoute.value.name == "LoginIndex"
+      ) {
         if (this.$route.query.redirect) {
           this.$router.push(this.$route.query.redirect);
         } else {
@@ -118,7 +114,6 @@ export default {
         }
       }
     },
-
     onCompany(company) {
       if (localStorage.getItem("session")) {
         let storedUser = JSON.parse(localStorage.getItem("session")) || {};
@@ -129,6 +124,12 @@ export default {
           localStorage.setItem("session", JSON.stringify(storedUser));
         }
       }
+    },
+  },
+
+  watch: {
+    isLogged() {
+      this.onLogged();
     },
   },
 };

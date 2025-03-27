@@ -104,7 +104,7 @@ export default {
   components: {},
 
   created() {
-    if (this.$auth.isLogged() && this.$auth.user.company === null) {
+    if (this.isLogged && this.user.company === null) {
       this.current = "create_company";
     }
   },
@@ -118,6 +118,8 @@ export default {
       error: "auth/error",
       violations: "auth/violations",
       created: "auth/created",
+      user: "auth/user",
+      isLogged: "auth/isLogged",
     }),
   },
 
@@ -253,8 +255,8 @@ export default {
     background() {
       return (
         "//" +
-        this.defaultCompany.theme.background.domain +
-        this.defaultCompany.theme.background.url
+        this.defaultCompany?.theme?.background.domain +
+        this.defaultCompany?.theme?.background.url
       );
     },
   },

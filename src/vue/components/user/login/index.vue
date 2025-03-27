@@ -60,6 +60,7 @@ export default {
 
   methods: {
     ...mapActions({
+      logIn: "auth/logIn",
       signIn: "auth/signIn",
       getUserStatus: "auth/getUserStatus",
     }),
@@ -87,16 +88,12 @@ export default {
         return true;
       };
     },
-    onAuthenticated(user) {
-      this.$auth.persist(user);
-      this.$emit("logged", user);
-    },
   },
 
   computed: {
     ...mapGetters({
       user: "auth/user",
-      isLoggedIn: "auth/isLoggedIn",
+      isLogged: "auth/isLogged",
       isLoading: "auth/isLoading",
       error: "auth/error",
       violations: "auth/violations",
@@ -111,15 +108,8 @@ export default {
   },
 
   watch: {
-    isLoggedIn: function (isLoggedIn) {
-      if (isLoggedIn === true) {
-        this.onAuthenticated(this.user);
-      }
-    },
-
     user(user) {
-      if (!user) return;
-      this.onAuthenticated(user);
+      if (user) this.logIn(user);
     },
   },
 };

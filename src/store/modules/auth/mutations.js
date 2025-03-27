@@ -5,11 +5,11 @@ export default {
     if (!user) {
       localStorage.clear();
       state.user = user;
-      state.isLoggedIn = false;
+      state.isLogged = false;
     } else {
       localStorage.setItem('session', JSON.stringify(user));
       state.user = user;
-      state.isLoggedIn = true;
+      state.isLogged = true;
     }
     state.user = user || {};
     return 'user';
@@ -40,8 +40,8 @@ export default {
     state.indexRoute = indexRoute || 'HomeIndex';
     return 'indexRoute';
   },
-  [types.LOGIN_SET_IS_LOGGED_IN](state, isLoggedIn) {
-    state.isLoggedIn = isLoggedIn || false;
-    return 'isLoggedIn';
+  [types.LOGIN_SET_IS_LOGGED](state, isLogged) {
+    state.isLogged = isLogged || false;
+    return 'isLogged';
   },
 };
