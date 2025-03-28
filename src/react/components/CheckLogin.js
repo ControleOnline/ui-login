@@ -9,7 +9,7 @@ const CheckLogin = ({}) => {
   const [currentRoute, setCurrentRoute] = useState(null);
 
   useEffect(() => {
-    let session = JSON.parse(localStorage.getItem('session')) || {};
+    let session = JSON.parse(localStorage.getItem('session') || '{}');
     authActions.logIn(session);
   }, []);
 
