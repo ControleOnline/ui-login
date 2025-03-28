@@ -84,7 +84,7 @@ export const isLogged = ({ commit, state }) => {
 };
 
 export const getLoggedUser = ({ commit, state }) => {
-  return state.user;
+  return state?.user;
 };
 
 export const logOut = ({ commit }) => {
