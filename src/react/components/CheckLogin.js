@@ -1,5 +1,5 @@
-import React, {useEffect, useState} from 'react';
-import {useNavigation} from '@react-navigation/native';
+import React, {useState, useCallback} from 'react';
+import {useNavigation, useFocusEffect} from '@react-navigation/native';
 import {getStore} from '@store';
 
 const CheckLogin = ({}) => {
@@ -7,32 +7,37 @@ const CheckLogin = ({}) => {
   const {getters: authGetters, actions: authActions} = getStore('auth');
   const {user, isLogged} = authGetters;
   const [currentRoute, setCurrentRoute] = useState(null);
+  useFocusEffect(
+    useCallback(() => {
+      let session = JSON.parse(localStorage.getItem('session') || '{}');
+      authActions.logIn(session);
+    }, []),
+  );
 
-  useEffect(() => {
-    let session = JSON.parse(localStorage.getItem('session') || '{}');
-    authActions.logIn(session);
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      if (!navigation) return;
+      setTimeout(() => {
+        setCurrentRoute(navigation.getCurrentRoute()?.name);
+      }, 100);
+    }, [navigation]),
+  );
 
-  useEffect(() => {
-    if (!navigation) return;
-    setTimeout(() => {
-      setCurrentRoute(navigation.getCurrentRoute()?.name);
-    }, 100);
-  }, [navigation]);
-
-  useEffect(() => {
-    if (!currentRoute) return;
-    if (!isLogged && currentRoute != 'SignInPage')
-      navigation.reset({
-        index: 0,
-        routes: [{name: 'SignInPage'}],
-      });
-    else if (isLogged && currentRoute == 'SignInPage')
-      navigation.reset({
-        index: 0,
-        routes: [{name: 'HomePage'}],
-      });
-  }, [isLogged, currentRoute]);
+  useFocusEffect(
+    useCallback(() => {
+      if (!currentRoute) return;
+      if (!isLogged && currentRoute != 'SignInPage')
+        navigation.reset({
+          index: 0,
+          routes: [{name: 'SignInPage'}],
+        });
+      else if (isLogged && currentRoute == 'SignInPage')
+        navigation.reset({
+          index: 0,
+          routes: [{name: 'HomePage'}],
+        });
+    }, [isLogged, currentRoute]),
+  );
 
   return null;
 };
