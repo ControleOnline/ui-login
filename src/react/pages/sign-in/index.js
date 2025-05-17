@@ -9,12 +9,12 @@ import {
 import * as Animatable from 'react-native-animatable';
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
 
-import {getStore} from '@store';
+import {useGetStore} from '@store';
 
 export default function SignIn({navigation}) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const {getters, actions} = getStore('auth');
+  const {getters, actions} = useGetStore('auth');
   const {isLogged} = getters;
 
   useFocusEffect(
