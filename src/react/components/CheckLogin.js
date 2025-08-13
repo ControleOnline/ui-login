@@ -1,11 +1,13 @@
 import React, {useState, useCallback} from 'react';
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
-import {getStore} from '@store';
+import {useStores} from '@store';
 
 const CheckLogin = ({}) => {
   const navigation = useNavigation();
-  const {getters: authGetters, actions: authActions} = getStore('auth');
-  const {user, isLogged} = authGetters;
+  const authStore = useStores(state => state.auth);
+  const authGetters = authStore.getters;
+  const authActions = authStore.actions;
+  const {isLogged} = authGetters;
   const [currentRoute, setCurrentRoute] = useState(null);
   useFocusEffect(
     useCallback(() => {
@@ -16,7 +18,9 @@ const CheckLogin = ({}) => {
 
   useFocusEffect(
     useCallback(() => {
-      if (!navigation) return;
+      if (!navigation) {
+        return;
+      }
       setTimeout(() => {
         setCurrentRoute(navigation.getCurrentRoute()?.name);
       }, 100);
@@ -25,17 +29,20 @@ const CheckLogin = ({}) => {
 
   useFocusEffect(
     useCallback(() => {
-      if (!currentRoute) return;
-      if (!isLogged && currentRoute != 'SignInPage')
+      if (!currentRoute) {
+        return;
+      }
+      if (!isLogged && currentRoute != 'SignInPage') {
         navigation.reset({
           index: 0,
           routes: [{name: 'SignInPage'}],
         });
-      else if (isLogged && currentRoute == 'SignInPage')
+      } else if (isLogged && currentRoute == 'SignInPage') {
         navigation.reset({
           index: 0,
           routes: [{name: 'HomePage'}],
         });
+      }
     }, [isLogged, currentRoute]),
   );
 

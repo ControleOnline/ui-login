@@ -7,19 +7,23 @@ import {
   SafeAreaView,
 } from 'react-native';
 import * as Animatable from 'react-native-animatable';
-import {useNavigation, useFocusEffect} from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
 
-import {getStore} from '@store';
+import {useStores} from '@store';
 
 export default function SignIn({navigation}) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const {getters, actions} = getStore('auth');
+  const authStore = useStores(state => state.auth);
+  const getters = authStore.getters;
+  const actions = authStore.actions;
   const {isLogged} = getters;
 
   useFocusEffect(
     useCallback(() => {
-      if (actions.isLogged()) navigation.navigate('HomePage');
+      if (actions.isLogged()) {
+        navigation.navigate('HomePage');
+      }
     }, [isLogged]),
   );
 
@@ -48,13 +52,13 @@ export default function SignIn({navigation}) {
         style={styles.containerLogin}>
         <TextInput
           placeholderTextColor="#666"
-          style={[styles.textInput,{color:"#666"}]}
+          style={[styles.textInput, {color: '#666'}]}
           placeholder="Usuário"
           onChangeText={text => setUsername(text)}
         />
         <TextInput
           placeholderTextColor="#666"
-          style={[styles.textInput,{color:"#666"}]}
+          style={[styles.textInput, {color: '#666'}]}
           placeholder="Senha"
           secureTextEntry={true}
           onChangeText={text => setPassword(text)}
