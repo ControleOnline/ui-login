@@ -31,9 +31,6 @@ export default function SignIn({navigation}) {
   const {getters: peopleGetters} = getStore('people');
   const {defaultCompany} = peopleGetters;
 
-  console.log(defaultCompany);
-
-  // URLs para logo e background da empresa
   const logoUrl = defaultCompany?.logo
     ? `https://${defaultCompany.logo.domain}${defaultCompany.logo.url}`
     : null;
@@ -42,7 +39,6 @@ export default function SignIn({navigation}) {
     ? `https://${defaultCompany.theme.background.domain}${defaultCompany.theme.background.url}`
     : null;
 
-  // Cores do tema da empresa
   const themeColors = defaultCompany?.theme?.colors || {};
   const primaryColor = themeColors.primary || '#1B5587';
   const accentColor = themeColors.accent || '#febc1d';
