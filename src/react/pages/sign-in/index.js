@@ -124,17 +124,6 @@ export default function SignIn({navigation}) {
                   )}
                 </View>
               </Animatable.View>
-
-              <Animatable.View
-                animation="fadeInDown"
-                delay={500}
-                style={styles.headerContainer}>
-                <Text style={styles.headerTitle}>Bem-vindo de volta!</Text>
-                <Text style={styles.headerSubtitle}>
-                  Entre na sua conta para continuar
-                </Text>
-              </Animatable.View>
-
               <Animatable.View
                 animation="fadeInUp"
                 delay={700}
