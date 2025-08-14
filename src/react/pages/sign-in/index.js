@@ -31,9 +31,7 @@ export default function SignIn({navigation}) {
   const {getters: peopleGetters} = getStore('people');
   const {defaultCompany} = peopleGetters;
 
-  console.log(defaultCompany);
-
-  // URLs para logo e background da empresa
+    // URLs para logo e background da empresa
   const logoUrl = defaultCompany?.logo
     ? `https://${defaultCompany.logo.domain}${defaultCompany.logo.url}`
     : null;
@@ -128,17 +126,6 @@ export default function SignIn({navigation}) {
                   )}
                 </View>
               </Animatable.View>
-
-              <Animatable.View
-                animation="fadeInDown"
-                delay={500}
-                style={styles.headerContainer}>
-                <Text style={styles.headerTitle}>Bem-vindo de volta!</Text>
-                <Text style={styles.headerSubtitle}>
-                  Entre na sua conta para continuar
-                </Text>
-              </Animatable.View>
-
               <Animatable.View
                 animation="fadeInUp"
                 delay={700}
