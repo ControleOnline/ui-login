@@ -93,131 +93,141 @@ export default function SignIn({navigation}) {
     }
   };
 
+  const renderConteudo = () => (
+    <View style={styles.overlay}>
+      <SafeAreaView style={styles.safeArea}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.keyboardContainer}>
+          <View style={styles.backgroundDecoration} />
+          <View style={styles.backgroundDecoration2} />
+
+          <Animatable.View
+            animation="bounceIn"
+            delay={300}
+            style={styles.logoContainer}>
+            <View style={styles.logoCircle}>
+              {logoUrl ? (
+                <Image
+                  source={{uri: logoUrl}}
+                  style={styles.logoImage}
+                  resizeMode="contain"
+                />
+              ) : (
+                <Icon name="lock" size={32} color="#FFFFFF" />
+              )}
+            </View>
+          </Animatable.View>
+          <Animatable.View
+            animation="fadeInUp"
+            delay={700}
+            style={styles.loginCard}>
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Usuário</Text>
+              <TextInput
+                placeholderTextColor="#999"
+                style={[
+                  styles.textInput,
+                  errors.username && styles.textInputError,
+                ]}
+                placeholder="Digite seu usuário ou email"
+                value={username}
+                onChangeText={text => {
+                  setUsername(text);
+                  if (errors.username) {
+                    setErrors(prev => ({...prev, username: null}));
+                  }
+                }}
+                autoCapitalize="none"
+                autoCorrect={false}
+                returnKeyType="next"
+              />
+              {errors.username && (
+                <Animatable.Text animation="shake" style={styles.errorText}>
+                  {errors.username}
+                </Animatable.Text>
+              )}
+            </View>
+
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Senha</Text>
+              <View style={styles.passwordWrapper}>
+                <TextInput
+                  placeholderTextColor="#999"
+                  style={[
+                    styles.textInput,
+                    styles.passwordInput,
+                    errors.password && styles.textInputError,
+                  ]}
+                  placeholder="Digite sua senha"
+                  value={password}
+                  secureTextEntry={!showPassword}
+                  onChangeText={text => {
+                    setPassword(text);
+                    if (errors.password) {
+                      setErrors(prev => ({...prev, password: null}));
+                    }
+                  }}
+                  returnKeyType="done"
+                  onSubmitEditing={handleSignIn}
+                />
+                <TouchableOpacity
+                  style={styles.eyeButton}
+                  onPress={() => setShowPassword(!showPassword)}>
+                  <Icon
+                    name={showPassword ? 'visibility' : 'visibility-off'}
+                    size={20}
+                    color="#666"
+                  />
+                </TouchableOpacity>
+              </View>
+              {errors.password && (
+                <Animatable.Text animation="shake" style={styles.errorText}>
+                  {errors.password}
+                </Animatable.Text>
+              )}
+            </View>
+
+            <TouchableOpacity
+              style={[
+                styles.loginButton,
+                {backgroundColor: primaryColor},
+                isLoading && styles.loginButtonDisabled,
+              ]}
+              onPress={handleSignIn}
+              disabled={isLoading}>
+              <View style={styles.loginButtonContent}>
+                {isLoading ? (
+                  <ActivityIndicator color="#fff" size="small" />
+                ) : (
+                  <>
+                    <Text style={styles.loginButtonText}>Entrar</Text>
+                    <Icon name="arrow-forward" size={20} color="#FFFFFF" />
+                  </>
+                )}
+              </View>
+            </TouchableOpacity>
+          </Animatable.View>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </View>
+  );
+
   return (
     <>
       <StatusBar barStyle="light-content" backgroundColor={primaryColor} />
-      <ImageBackground
-        source={backgroundUrl ? {uri: backgroundUrl} : null}
-        style={[styles.container, {backgroundColor: primaryColor}]}
-        resizeMode="cover">
-        <View style={styles.overlay}>
-          <SafeAreaView style={styles.safeArea}>
-            <KeyboardAvoidingView
-              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-              style={styles.keyboardContainer}>
-              <View style={styles.backgroundDecoration} />
-              <View style={styles.backgroundDecoration2} />
-
-              <Animatable.View
-                animation="bounceIn"
-                delay={300}
-                style={styles.logoContainer}>
-                <View style={styles.logoCircle}>
-                  {logoUrl ? (
-                    <Image
-                      source={{uri: logoUrl}}
-                      style={styles.logoImage}
-                      resizeMode="contain"
-                    />
-                  ) : (
-                    <Icon name="lock" size={32} color="#FFFFFF" />
-                  )}
-                </View>
-              </Animatable.View>
-              <Animatable.View
-                animation="fadeInUp"
-                delay={700}
-                style={styles.loginCard}>
-                <View style={styles.inputContainer}>
-                  <Text style={styles.inputLabel}>Usuário</Text>
-                  <TextInput
-                    placeholderTextColor="#999"
-                    style={[
-                      styles.textInput,
-                      errors.username && styles.textInputError,
-                    ]}
-                    placeholder="Digite seu usuário ou email"
-                    value={username}
-                    onChangeText={text => {
-                      setUsername(text);
-                      if (errors.username) {
-                        setErrors(prev => ({...prev, username: null}));
-                      }
-                    }}
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    returnKeyType="next"
-                  />
-                  {errors.username && (
-                    <Animatable.Text animation="shake" style={styles.errorText}>
-                      {errors.username}
-                    </Animatable.Text>
-                  )}
-                </View>
-
-                <View style={styles.inputContainer}>
-                  <Text style={styles.inputLabel}>Senha</Text>
-                  <View style={styles.passwordWrapper}>
-                    <TextInput
-                      placeholderTextColor="#999"
-                      style={[
-                        styles.textInput,
-                        styles.passwordInput,
-                        errors.password && styles.textInputError,
-                      ]}
-                      placeholder="Digite sua senha"
-                      value={password}
-                      secureTextEntry={!showPassword}
-                      onChangeText={text => {
-                        setPassword(text);
-                        if (errors.password) {
-                          setErrors(prev => ({...prev, password: null}));
-                        }
-                      }}
-                      returnKeyType="done"
-                      onSubmitEditing={handleSignIn}
-                    />
-                    <TouchableOpacity
-                      style={styles.eyeButton}
-                      onPress={() => setShowPassword(!showPassword)}>
-                      <Icon
-                        name={showPassword ? 'visibility' : 'visibility-off'}
-                        size={20}
-                        color="#666"
-                      />
-                    </TouchableOpacity>
-                  </View>
-                  {errors.password && (
-                    <Animatable.Text animation="shake" style={styles.errorText}>
-                      {errors.password}
-                    </Animatable.Text>
-                  )}
-                </View>
-
-                <TouchableOpacity
-                  style={[
-                    styles.loginButton,
-                    {backgroundColor: primaryColor},
-                    isLoading && styles.loginButtonDisabled,
-                  ]}
-                  onPress={handleSignIn}
-                  disabled={isLoading}>
-                  <View style={styles.loginButtonContent}>
-                    {isLoading ? (
-                      <ActivityIndicator color="#fff" size="small" />
-                    ) : (
-                      <>
-                        <Text style={styles.loginButtonText}>Entrar</Text>
-                        <Icon name="arrow-forward" size={20} color="#FFFFFF" />
-                      </>
-                    )}
-                  </View>
-                </TouchableOpacity>
-              </Animatable.View>
-            </KeyboardAvoidingView>
-          </SafeAreaView>
+      {backgroundUrl ? (
+        <ImageBackground
+          source={backgroundUrl ? {uri: backgroundUrl} : null}
+          style={[styles.container, {backgroundColor: primaryColor}]}
+          resizeMode="cover">
+          {renderConteudo()}
+        </ImageBackground>
+      ) : (
+        <View style={[styles.container, {backgroundColor: primaryColor}]}>
+          {renderConteudo()}
         </View>
-      </ImageBackground>
+      )}
     </>
   );
 }

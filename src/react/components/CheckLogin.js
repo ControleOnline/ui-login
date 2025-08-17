@@ -5,7 +5,7 @@ import {getStore} from '@store';
 const CheckLogin = ({}) => {
   const navigation = useNavigation();
   const {getters: authGetters, actions: authActions} = getStore('auth');
-  const {user, isLogged} = authGetters;
+  const {isLogged} = authGetters;
   const [currentRoute, setCurrentRoute] = useState(null);
   useFocusEffect(
     useCallback(() => {
