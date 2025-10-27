@@ -41,7 +41,6 @@ export default function SignIn({navigation}) {
 
   const themeColors = defaultCompany?.theme?.colors || {};
   const primaryColor = themeColors.primary || '#1B5587';
-  const accentColor = themeColors.accent || '#febc1d';
   useFocusEffect(
     useCallback(() => {
       if (actions.isLogged()) {
