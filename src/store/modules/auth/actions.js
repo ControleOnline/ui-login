@@ -8,6 +8,17 @@ export const signIn = ({ commit, state }, values) => {
   return api
     .fetch("token", { method: "POST", body: values })
     .then((data) => {
+      
+      // AleMac // 26/11/2025
+      // validação REAL da resposta da API
+      if (!data || data.error) {
+        throw new Error(data.error || "Credenciais inválidas");
+      }
+      if (data.active !== 1 || !data.api_key) {
+        throw new Error("Credenciais inválidas");
+      }
+
+      // só loga se passou em todas as validações
       logIn({ commit, state }, data);
       return data;
     })
@@ -88,9 +99,15 @@ export const getLoggedUser = ({ commit, state }) => {
 };
 
 export const logOut = ({ commit }) => {
+  
+  // AleMac // 26/11/2025
+  // para fazer o logout corretamente
+  localStorage.removeItem("session");
+
   commit(types.LOGIN_SET_USER, null);
   commit(types.LOGIN_SET_IS_LOGGED, false);
-  localStorage.clear();
+  // localStorage.clear();
+
 };
 
 export const setIndexRoute = ({ commit }, indexRoute) => {
