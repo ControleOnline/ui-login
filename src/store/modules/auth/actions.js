@@ -100,13 +100,9 @@ export const getLoggedUser = ({ commit, state }) => {
 
 export const logOut = ({ commit }) => {
   
-  // AleMac // 26/11/2025
-  // para fazer o logout corretamente
-  localStorage.removeItem("session");
-
   commit(types.LOGIN_SET_USER, null);
   commit(types.LOGIN_SET_IS_LOGGED, false);
-  // localStorage.clear();
+  localStorage.clear();
 
 };
 
