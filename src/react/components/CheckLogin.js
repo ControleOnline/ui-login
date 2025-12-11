@@ -1,10 +1,12 @@
 import React, {useState, useCallback} from 'react';
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
-import {getStore} from '@store';
+import {useStores} from '@store';
 
 const CheckLogin = ({}) => {
   const navigation = useNavigation();
-  const {getters: authGetters, actions: authActions} = getStore('auth');
+  const authStore = useStores(state => state.auth);
+  const authGetters = authStore.getters;
+  const authActions = authStore.actions;
   const {isLogged} = authGetters;
   const [currentRoute, setCurrentRoute] = useState(null);
   useFocusEffect(

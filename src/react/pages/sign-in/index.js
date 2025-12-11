@@ -19,7 +19,7 @@ import * as Animatable from 'react-native-animatable';
 import {useFocusEffect} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
-import {getStore} from '@store';
+import {useStores} from '@store';
 
 export default function SignIn({navigation}) {
   const [username, setUsername] = useState('');
@@ -27,8 +27,10 @@ export default function SignIn({navigation}) {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
-  const {actions} = getStore('auth');
-  const {getters: peopleGetters} = getStore('people');
+  const authStore = useStores(state => state.auth);
+  const actions = authStore.actions;
+  const peopleStore = useStores(state => state.people);
+  const peopleGetters = peopleStore.getters;
   const {defaultCompany} = peopleGetters;
 
   const logoUrl = defaultCompany?.logo
