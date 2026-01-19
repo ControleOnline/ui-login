@@ -1,10 +1,10 @@
 import React, {useState, useCallback} from 'react';
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
-import {useStores} from '@store';
+import {useStore} from '@store';
 
 const CheckLogin = ({}) => {
   const navigation = useNavigation();
-  const authStore = useStores(state => state.auth);
+  const authStore = useStore('auth');
   const authGetters = authStore.getters;
   const authActions = authStore.actions;
   const {isLogged} = authGetters;
