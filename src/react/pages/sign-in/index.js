@@ -1,10 +1,9 @@
-import React, {useState, useCallback} from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  SafeAreaView,
   View,
   Alert,
   ActivityIndicator,
@@ -15,13 +14,15 @@ import {
   Image,
   ImageBackground,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
 import * as Animatable from 'react-native-animatable';
-import {useFocusEffect} from '@react-navigation/native';
+import { useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
-import {useStore} from '@store';
+import { useStore } from '@store';
 
-export default function SignIn({navigation}) {
+export default function SignIn({ navigation }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -31,7 +32,7 @@ export default function SignIn({navigation}) {
   const actions = authStore.actions;
   const peopleStore = useStore('people');
   const peopleGetters = peopleStore.getters;
-  const {defaultCompany} = peopleGetters;
+  const { defaultCompany } = peopleGetters;
 
   const logoUrl = defaultCompany?.logo
     ? `https://${defaultCompany.logo.domain}${defaultCompany.logo.url}`
@@ -87,7 +88,7 @@ export default function SignIn({navigation}) {
       Alert.alert(
         'Erro no Login',
         error.message || 'Credenciais inválidas. Tente novamente.',
-        [{text: 'OK'}],
+        [{ text: 'OK' }],
       );
     } finally {
       setIsLoading(false);
@@ -110,7 +111,7 @@ export default function SignIn({navigation}) {
             <View style={styles.logoCircle}>
               {logoUrl ? (
                 <Image
-                  source={{uri: logoUrl}}
+                  source={{ uri: logoUrl }}
                   style={styles.logoImage}
                   resizeMode="contain"
                 />
@@ -136,7 +137,7 @@ export default function SignIn({navigation}) {
                 onChangeText={text => {
                   setUsername(text);
                   if (errors.username) {
-                    setErrors(prev => ({...prev, username: null}));
+                    setErrors(prev => ({ ...prev, username: null }));
                   }
                 }}
                 autoCapitalize="none"
@@ -166,7 +167,7 @@ export default function SignIn({navigation}) {
                   onChangeText={text => {
                     setPassword(text);
                     if (errors.password) {
-                      setErrors(prev => ({...prev, password: null}));
+                      setErrors(prev => ({ ...prev, password: null }));
                     }
                   }}
                   returnKeyType="done"
@@ -192,7 +193,7 @@ export default function SignIn({navigation}) {
             <TouchableOpacity
               style={[
                 styles.loginButton,
-                {backgroundColor: primaryColor},
+                { backgroundColor: primaryColor },
                 isLoading && styles.loginButtonDisabled,
               ]}
               onPress={handleSignIn}
@@ -219,13 +220,13 @@ export default function SignIn({navigation}) {
       <StatusBar barStyle="light-content" backgroundColor={primaryColor} />
       {backgroundUrl ? (
         <ImageBackground
-          source={backgroundUrl ? {uri: backgroundUrl} : null}
-          style={[styles.container, {backgroundColor: primaryColor}]}
+          source={backgroundUrl ? { uri: backgroundUrl } : null}
+          style={[styles.container, { backgroundColor: primaryColor }]}
           resizeMode="cover">
           {renderConteudo()}
         </ImageBackground>
       ) : (
-        <View style={[styles.container, {backgroundColor: primaryColor}]}>
+        <View style={[styles.container, { backgroundColor: primaryColor }]}>
           {renderConteudo()}
         </View>
       )}
@@ -233,7 +234,7 @@ export default function SignIn({navigation}) {
   );
 }
 
-const {height} = Dimensions.get('window');
+const { height } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
   container: {
