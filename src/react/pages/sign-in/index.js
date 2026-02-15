@@ -19,6 +19,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Animatable from 'react-native-animatable';
 import { useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { env } from '@env';
 
 import { useStore } from '@store';
 
@@ -34,9 +35,17 @@ export default function SignIn({ navigation }) {
   const peopleGetters = peopleStore.getters;
   const { defaultCompany } = peopleGetters;
 
-  const logoUrl = defaultCompany?.logo
-    ? `https://${defaultCompany.logo.domain}${defaultCompany.logo.url}`
-    : null;
+  const APP_TYPE = (env?.APP_TYPE || '').toLowerCase();
+  const LOGO =
+    {
+      checkout: require('../../../../../../../src/assets/checkout/logo 512x512 r.png'),
+      crm: require('../../../../../../../src/assets/crm/logo 512x512 r.png'),
+      delivery: require('../../../../../../../src/assets/delivery/logo 512x512 r.png'),
+      manager: require('../../../../../../../src/assets/manager/logo 512x512 r.png'),
+      menu: require('../../../../../../../src/assets/menu/logo 512x512 r.png'),
+      pos: require('../../../../../../../src/assets/pos/logo 512x512 r.png'),
+      ppc: require('../../../../../../../src/assets/ppc/logo 512x512 r.png'),
+    }[APP_TYPE];
 
   const backgroundUrl = defaultCompany?.theme?.background
     ? `https://${defaultCompany.theme.background.domain}${defaultCompany.theme.background.url}`
@@ -109,15 +118,7 @@ export default function SignIn({ navigation }) {
             delay={300}
             style={styles.logoContainer}>
             <View style={styles.logoCircle}>
-              {logoUrl ? (
-                <Image
-                  source={{ uri: logoUrl }}
-                  style={styles.logoImage}
-                  resizeMode="contain"
-                />
-              ) : (
-                <Icon name="lock" size={32} color="#FFFFFF" />
-              )}
+              <Image source={LOGO} style={styles.logoImage} resizeMode="contain" />
             </View>
           </Animatable.View>
           <Animatable.View
@@ -294,8 +295,8 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   logoImage: {
-    width: 70,
-    height: 70,
+    width: 100,
+    height: 100,
   },
 
   headerContainer: {
