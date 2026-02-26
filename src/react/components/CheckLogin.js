@@ -9,6 +9,14 @@ const CheckLogin = ({}) => {
   const authActions = authStore.actions;
   const {isLogged} = authGetters;
   const [currentRoute, setCurrentRoute] = useState(null);
+
+  const getPostLoginRoute = useCallback(() => {
+    const routeNames = navigation?.getState?.()?.routeNames || [];
+    if (routeNames.includes('HomePage')) return 'HomePage';
+    if (routeNames.includes('CrmIndex')) return 'CrmIndex';
+    if (routeNames.includes('SalesOrderIndex')) return 'SalesOrderIndex';
+    return routeNames.find(name => name !== 'SignInPage') || null;
+  }, [navigation]);
   useFocusEffect(
     useCallback(() => {
       try {
@@ -37,9 +45,7 @@ const CheckLogin = ({}) => {
   useFocusEffect(
     useCallback(() => {
       if (!navigation) return;
-      setTimeout(() => {
-        setCurrentRoute(navigation.getCurrentRoute()?.name);
-      }, 100);
+      setCurrentRoute(navigation.getCurrentRoute()?.name);
     }, [navigation]),
   );
 
@@ -51,12 +57,15 @@ const CheckLogin = ({}) => {
           index: 0,
           routes: [{name: 'SignInPage'}],
         });
-      else if (isLogged && currentRoute == 'SignInPage')
+      else if (isLogged && currentRoute == 'SignInPage') {
+        const postLoginRoute = getPostLoginRoute();
+        if (!postLoginRoute) return;
         navigation.reset({
           index: 0,
-          routes: [{name: 'HomePage'}],
+          routes: [{name: postLoginRoute}],
         });
-    }, [isLogged, currentRoute]),
+      }
+    }, [isLogged, currentRoute, getPostLoginRoute]),
   );
 
   return null;

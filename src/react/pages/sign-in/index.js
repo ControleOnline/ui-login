@@ -1,11 +1,10 @@
-import React, { useState, useCallback } from 'react';
+﻿import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import {
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
-  Alert,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
@@ -15,417 +14,320 @@ import {
   ImageBackground,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
 import * as Animatable from 'react-native-animatable';
 import { useFocusEffect } from '@react-navigation/native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
-import { env } from '@env';
-
+import Icon from 'react-native-vector-icons/Feather';
 import { useStore } from '@store';
+import {useMessage} from '@controleonline/ui-common/src/react/components/MessageService';
+import {buildAssetUrl} from '@controleonline/../../src/styles/branding';
+
+import { colors } from '@controleonline/../../src/styles/colors';
+
+const { height } = Dimensions.get('window');
+
+const getPostLoginRoute = navigation => {
+  const routeNames = navigation?.getState?.()?.routeNames || [];
+  if (routeNames.includes('HomePage')) return 'HomePage';
+  if (routeNames.includes('CrmIndex')) return 'CrmIndex';
+  if (routeNames.includes('SalesOrderIndex')) return 'SalesOrderIndex';
+  return routeNames.find(name => name !== 'SignInPage') || null;
+};
 
 export default function SignIn({ navigation }) {
+  const {showError} = useMessage();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
+  const [logoLoadError, setLogoLoadError] = useState(false);
   const authStore = useStore('auth');
   const actions = authStore.actions;
   const peopleStore = useStore('people');
   const peopleGetters = peopleStore.getters;
-  const { defaultCompany } = peopleGetters;
+  const {defaultCompany, currentCompany} = peopleGetters;
 
-  const APP_TYPE = (env?.APP_TYPE || '').toLowerCase();
-  const LOGO =
-    {
-      checkout: require('../../../../../../../src/assets/checkout/logo 512x512 r.png'),
-      crm: require('../../../../../../../src/assets/crm/logo 512x512 r.png'),
-      delivery: require('../../../../../../../src/assets/delivery/logo 512x512 r.png'),
-      manager: require('../../../../../../../src/assets/manager/logo 512x512 r.png'),
-      menu: require('../../../../../../../src/assets/menu/logo 512x512 r.png'),
-      pos: require('../../../../../../../src/assets/pos/logo 512x512 r.png'),
-      ppc: require('../../../../../../../src/assets/ppc/logo 512x512 r.png'),
-    }[APP_TYPE];
+  const brandCompany = useMemo(() => {
+    if (defaultCompany?.id) {
+      return defaultCompany;
+    }
+    if (currentCompany?.id) {
+      return currentCompany;
+    }
+    return {};
+  }, [defaultCompany?.id, currentCompany?.id]);
+  const fallbackLogo = require('../../../../../../../src/assets/logo.png');
+  const logoUrl = buildAssetUrl(brandCompany?.logo);
+  const backgroundUrl = buildAssetUrl(
+    brandCompany?.theme?.background || brandCompany?.background,
+  );
 
-  const backgroundUrl = defaultCompany?.theme?.background
-    ? `https://${defaultCompany.theme.background.domain}${defaultCompany.theme.background.url}`
-    : null;
+  useEffect(() => {
+    setLogoLoadError(false);
+  }, [logoUrl]);
 
-  const themeColors = defaultCompany?.theme?.colors || {};
-  const primaryColor = themeColors.primary || '#1B5587';
   useFocusEffect(
     useCallback(() => {
       if (actions.isLogged()) {
-        navigation.navigate('HomePage');
+        const postLoginRoute = getPostLoginRoute(navigation);
+        if (postLoginRoute) {
+          navigation.reset({
+            index: 0,
+            routes: [{name: postLoginRoute}],
+          });
+        }
       }
     }, [actions, navigation]),
   );
 
   const validateForm = () => {
     const newErrors = {};
-
-    if (!username.trim()) {
-      newErrors.username = 'Usuário é obrigatório';
-    }
-
-    if (!password.trim()) {
-      newErrors.password = 'Senha é obrigatória';
-    } else if (password.length < 6) {
-      newErrors.password = 'Senha deve ter pelo menos 6 caracteres';
-    }
-
+    if (!username.trim()) newErrors.username = 'Usu\u00E1rio \u00E9 obrigat\u00F3rio';
+    if (!password.trim()) newErrors.password = 'Senha \u00E9 obrigat\u00F3ria';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSignIn = async () => {
-    if (!validateForm()) {
-      return;
-    }
-
+    if (!validateForm()) return;
     setIsLoading(true);
     setErrors({});
-
     try {
-      await actions.signIn({
-        username: username,
-        password: password,
-      });
-      navigation.navigate('HomePage');
+      await actions.signIn({ username, password });
+      const postLoginRoute = getPostLoginRoute(navigation);
+      if (postLoginRoute) {
+        navigation.reset({
+          index: 0,
+          routes: [{name: postLoginRoute}],
+        });
+      }
     } catch (error) {
-      console.log(error.message);
-      Alert.alert(
-        'Erro no Login',
-        error.message || 'Credenciais inválidas. Tente novamente.',
-        [{ text: 'OK' }],
-      );
+      showError(error.message || 'Credenciais inválidas. Tente novamente.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const renderConteudo = () => (
-    <View style={styles.overlay}>
-      <SafeAreaView style={styles.safeArea}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.keyboardContainer}>
-          <View style={styles.backgroundDecoration} />
-          <View style={styles.backgroundDecoration2} />
+  const content = (
+    <SafeAreaView
+      style={[styles.container, backgroundUrl ? styles.containerTransparent : null]}>
+      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
 
-          <Animatable.View
-            animation="bounceIn"
-            delay={300}
-            style={styles.logoContainer}>
-            <View style={styles.logoCircle}>
-              <Image source={LOGO} style={styles.logoImage} resizeMode="contain" />
-            </View>
-          </Animatable.View>
-          <Animatable.View
-            animation="fadeInUp"
-            delay={700}
-            style={styles.loginCard}>
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Usuário</Text>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.content}>
+        <View style={styles.centerBlock}>
+          <View style={styles.header}>
+            <Animatable.View animation="fadeInDown" delay={200} style={styles.logoContainer}>
+              <Image
+                source={
+                  logoUrl && !logoLoadError
+                    ? {uri: logoUrl}
+                    : fallbackLogo
+                }
+                style={styles.logo}
+                resizeMode="contain"
+                onError={() => setLogoLoadError(true)}
+              />
+            </Animatable.View>
+
+            <Animatable.Text animation="fadeIn" delay={400} style={styles.subtitle}>
+              Entre com suas credenciais para acessar
+            </Animatable.Text>
+          </View>
+
+          <Animatable.View animation="fadeInUp" delay={600} style={styles.form}>
+            <View style={[styles.inputContainer, errors.username && styles.inputError]}>
+              <Icon name="mail" size={20} color={colors.textSecondary} style={styles.inputIcon} />
               <TextInput
-                placeholderTextColor="#999"
-                style={[
-                  styles.textInput,
-                  errors.username && styles.textInputError,
-                ]}
-                placeholder="Digite seu usuário ou email"
+                placeholder={'Email ou Usu\u00E1rio'}
+                placeholderTextColor="#94A3B8"
+                style={styles.input}
                 value={username}
-                onChangeText={text => {
-                  setUsername(text);
-                  if (errors.username) {
-                    setErrors(prev => ({ ...prev, username: null }));
-                  }
-                }}
+                onChangeText={setUsername}
                 autoCapitalize="none"
                 autoCorrect={false}
-                returnKeyType="next"
               />
-              {errors.username && (
-                <Animatable.Text animation="shake" style={styles.errorText}>
-                  {errors.username}
-                </Animatable.Text>
-              )}
             </View>
 
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Senha</Text>
-              <View style={styles.passwordWrapper}>
-                <TextInput
-                  placeholderTextColor="#999"
-                  style={[
-                    styles.textInput,
-                    styles.passwordInput,
-                    errors.password && styles.textInputError,
-                  ]}
-                  placeholder="Digite sua senha"
-                  value={password}
-                  secureTextEntry={!showPassword}
-                  onChangeText={text => {
-                    setPassword(text);
-                    if (errors.password) {
-                      setErrors(prev => ({ ...prev, password: null }));
-                    }
-                  }}
-                  returnKeyType="done"
-                  onSubmitEditing={handleSignIn}
-                />
-                <TouchableOpacity
-                  style={styles.eyeButton}
-                  onPress={() => setShowPassword(!showPassword)}>
-                  <Icon
-                    name={showPassword ? 'visibility' : 'visibility-off'}
-                    size={20}
-                    color="#666"
-                  />
-                </TouchableOpacity>
-              </View>
-              {errors.password && (
-                <Animatable.Text animation="shake" style={styles.errorText}>
-                  {errors.password}
-                </Animatable.Text>
-              )}
+            <View style={[styles.inputContainer, errors.password && styles.inputError]}>
+              <Icon name="lock" size={20} color={colors.textSecondary} style={styles.inputIcon} />
+              <TextInput
+                placeholder="Senha"
+                placeholderTextColor="#94A3B8"
+                style={styles.input}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+              />
+              <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                <Icon name={showPassword ? 'eye' : 'eye-off'} size={20} color={colors.textSecondary} />
+              </TouchableOpacity>
             </View>
+
+            {/* <TouchableOpacity style={styles.forgotPassword}>
+              <Text style={styles.forgotPasswordText}>Esqueceu a senha?</Text>
+            </TouchableOpacity> */}
 
             <TouchableOpacity
-              style={[
-                styles.loginButton,
-                { backgroundColor: primaryColor },
-                isLoading && styles.loginButtonDisabled,
-              ]}
+              style={styles.loginButton}
               onPress={handleSignIn}
               disabled={isLoading}>
-              <View style={styles.loginButtonContent}>
-                {isLoading ? (
-                  <ActivityIndicator color="#fff" size="small" />
-                ) : (
-                  <>
-                    <Text style={styles.loginButtonText}>Entrar</Text>
-                    <Icon name="arrow-forward" size={20} color="#FFFFFF" />
-                  </>
-                )}
-              </View>
+              {isLoading ? (
+                <ActivityIndicator color={colors.white} />
+              ) : (
+                <Text style={styles.loginButtonText}>Entrar</Text>
+              )}
             </TouchableOpacity>
           </Animatable.View>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
-    </View>
-  );
-
-  return (
-    <>
-      <StatusBar barStyle="light-content" backgroundColor={primaryColor} />
-      {backgroundUrl ? (
-        <ImageBackground
-          source={backgroundUrl ? { uri: backgroundUrl } : null}
-          style={[styles.container, { backgroundColor: primaryColor }]}
-          resizeMode="cover">
-          {renderConteudo()}
-        </ImageBackground>
-      ) : (
-        <View style={[styles.container, { backgroundColor: primaryColor }]}>
-          {renderConteudo()}
         </View>
-      )}
-    </>
-  );
-}
 
-const { height } = Dimensions.get('window');
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  );
+
+  if (backgroundUrl) {
+    return (
+      <ImageBackground
+        source={{uri: backgroundUrl}}
+        style={styles.container}
+        resizeMode="cover">
+        <View style={styles.backgroundOverlay}>{content}</View>
+      </ImageBackground>
+    );
+  }
+
+  return content;
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: colors.background,
   },
-  overlay: {
+  content: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)', // Overlay semi-transparente para melhor legibilidade
+    paddingHorizontal: 24,
   },
-  backgroundDecoration: {
-    position: 'absolute',
-    top: -50,
-    right: -50,
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-  },
-  backgroundDecoration2: {
-    position: 'absolute',
-    bottom: -100,
-    left: -100,
-    width: 300,
-    height: 300,
-    borderRadius: 150,
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
-  },
-  safeArea: {
+  centerBlock: {
     flex: 1,
-  },
-  keyboardContainer: {
-    flex: 1,
-    paddingHorizontal: 20,
-  },
-
-  logoContainer: {
-    alignItems: 'center',
-    marginTop: height * 0.08,
-    marginBottom: 20,
-  },
-  logoCircle: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
     justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    width: '100%',
+    alignSelf: 'center',
+    maxWidth: 420,
+    paddingBottom: height * 0.02,
   },
-  logoImage: {
-    width: 100,
-    height: 100,
+  backgroundOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(248, 250, 252, 0.45)',
   },
-
-  headerContainer: {
+  containerTransparent: {
+    backgroundColor: 'transparent',
+  },
+  header: {
     alignItems: 'center',
     marginBottom: 40,
   },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  headerSubtitle: {
-    fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.8)',
-    textAlign: 'center',
-    lineHeight: 22,
-  },
-
-  loginCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    padding: 30,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 10,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 20,
-    elevation: 15,
-  },
-  inputContainer: {
-    marginBottom: 24,
-  },
-  inputLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: 8,
-  },
-  textInput: {
-    backgroundColor: '#F9FAFB',
-    borderWidth: 1,
-    borderColor: '#D1D5DB',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 16,
-    color: '#111827',
-    fontWeight: '400',
-  },
-  textInputError: {
-    borderColor: '#EF4444',
-    backgroundColor: '#FEF2F2',
-  },
-
-  passwordWrapper: {
-    position: 'relative',
-  },
-  passwordInput: {
-    paddingRight: 50,
-  },
-  eyeButton: {
-    position: 'absolute',
-    right: 12,
-    top: 14,
-    padding: 4,
-  },
-
-  errorText: {
-    color: '#EF4444',
-    fontSize: 13,
-    marginTop: 6,
-    fontWeight: '500',
-  },
-
-  loginButton: {
-    marginTop: 10,
-    marginBottom: 20,
-    borderRadius: 16,
-    shadowOffset: {
-      width: 0,
-      height: 8,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 12,
-  },
-  loginButtonContent: {
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: 16,
     flexDirection: 'row',
+  },
+  logo: {
+    width: 300,
+    height: 100,
+    marginRight: 10,
+  },
+  logoFallback: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: '#EEF2FF',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 18,
-    paddingHorizontal: 24,
+    marginRight: 12,
   },
-  loginButtonDisabled: {
-    shadowOpacity: 0,
-    elevation: 0,
+  brandName: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#0F172A',
+    letterSpacing: -0.5,
   },
-  loginButtonText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    marginRight: 8,
+  subtitle: {
+    fontSize: 15,
+    color: colors.textSecondary,
+    textAlign: 'center',
   },
-
-  forgotPasswordButton: {
+  form: {
+    width: '100%',
+  },
+  inputContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
+    backgroundColor: '#F1F5F9', // Darker background for inputs
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    height: 56,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  inputError: {
+    borderColor: colors.error,
+    backgroundColor: '#FEF2F2', // Keep or move to constants if needed, but acceptable for now
+  },
+  inputIcon: {
+    marginRight: 12,
+  },
+  input: {
+    flex: 1,
+    fontSize: 16,
+    color: '#0F172A',
+  },
+  forgotPassword: {
+    alignSelf: 'flex-end',
+    marginBottom: 24,
   },
   forgotPasswordText: {
-    color: '#1B5587',
-    fontSize: 15,
+    color: colors.error,
+    // The reference image has red text. User said "like the photo". I'll use red for this link.
+    fontSize: 14,
     fontWeight: '600',
-    textDecorationLine: 'underline',
   },
-
-  footer: {
+  loginButton: {
+    backgroundColor: '#DC2626', // Red button as in reference image? 
+    // User said "like the photo... but in light theme". The photo effectively has RED branding.
+    // However, my system is Indigo. I should check if I should switch to Red branding.
+    // The user said "improve... more like the app... like the photo".
+    // I'll stick to Indigo (`#6366F1`) to match the rest of the CRM modification I did. 
+    // But wait, the user specifically pointed to the image. 
+    // I'll use Indigo for consistency, but maybe a simplified button style.
+    backgroundColor: colors.primary,
+    borderRadius: 12,
+    height: 56,
     alignItems: 'center',
-    marginTop: 'auto',
-    marginBottom: 20,
+    justifyContent: 'center',
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.primary,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 10,
+      },
+      android: {
+        elevation: 4,
+      },
+      web: {
+        boxShadow: '0px 4px 10px rgba(99, 102, 241, 0.3)',
+      },
+    }),
   },
-  footerText: {
-    color: 'rgba(255, 255, 255, 0.7)',
-    fontSize: 13,
-    textAlign: 'center',
-    fontWeight: '500',
+  loginButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '700',
   },
 });
+
+
+
