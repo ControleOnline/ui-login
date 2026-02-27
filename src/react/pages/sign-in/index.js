@@ -82,8 +82,8 @@ export default function SignIn({ navigation }) {
 
   const validateForm = () => {
     const newErrors = {};
-    if (!username.trim()) newErrors.username = 'Usu\u00E1rio \u00E9 obrigat\u00F3rio';
-    if (!password.trim()) newErrors.password = 'Senha \u00E9 obrigat\u00F3ria';
+    if (!username.trim()) newErrors.username = global.t?.t('loginPage', 'label', 'Usuário é obrigatório') || 'Usuário é obrigatório';
+    if (!password.trim()) newErrors.password = global.t?.t('loginPage', 'label', 'Senha é obrigatória') || 'Senha é obrigatória';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -102,7 +102,7 @@ export default function SignIn({ navigation }) {
         });
       }
     } catch (error) {
-      showError(error.message || 'Credenciais inválidas. Tente novamente.');
+      showError(error.message || global.t?.t('loginPage', 'label', 'Credenciais inválidas. Tente novamente.') || 'Credenciais inválidas. Tente novamente.');
     } finally {
       setIsLoading(false);
     }
@@ -132,7 +132,7 @@ export default function SignIn({ navigation }) {
             </Animatable.View>
 
             <Animatable.Text animation="fadeIn" delay={400} style={styles.subtitle}>
-              Entre com suas credenciais para acessar
+              {global.t?.t('loginPage', 'label', 'Entre com suas credenciais para acessar') || 'Entre com suas credenciais para acessar'}
             </Animatable.Text>
           </View>
 
@@ -140,7 +140,7 @@ export default function SignIn({ navigation }) {
             <View style={[styles.inputContainer, errors.username && styles.inputError]}>
               <Icon name="mail" size={20} color={colors.textSecondary} style={styles.inputIcon} />
               <TextInput
-                placeholder={'Email ou Usu\u00E1rio'}
+                placeholder={global.t?.t('loginPage', 'label', 'Email ou Usuário') || 'Email ou Usuário'}
                 placeholderTextColor="#94A3B8"
                 style={styles.input}
                 value={username}
@@ -153,7 +153,7 @@ export default function SignIn({ navigation }) {
             <View style={[styles.inputContainer, errors.password && styles.inputError]}>
               <Icon name="lock" size={20} color={colors.textSecondary} style={styles.inputIcon} />
               <TextInput
-                placeholder="Senha"
+                placeholder={global.t?.t('loginPage', 'label', 'Senha') || 'Senha'}
                 placeholderTextColor="#94A3B8"
                 style={styles.input}
                 value={password}
@@ -176,7 +176,7 @@ export default function SignIn({ navigation }) {
               {isLoading ? (
                 <ActivityIndicator color={colors.white} />
               ) : (
-                <Text style={styles.loginButtonText}>Entrar</Text>
+                <Text style={styles.loginButtonText}>{global.t?.t('loginPage', 'label', 'Entrar') || 'Entrar'}</Text>
               )}
             </TouchableOpacity>
           </Animatable.View>
