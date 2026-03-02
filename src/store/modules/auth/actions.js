@@ -20,6 +20,7 @@ export const signIn = ({ commit, state }, values) => {
 
       // só loga se passou em todas as validações
       logIn({ commit, state }, data);
+
       return data;
     })
     .catch((e) => {
