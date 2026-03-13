@@ -82,7 +82,7 @@ export default function SignIn({ navigation }) {
 
   const validateForm = () => {
     const newErrors = {};
-    if (!username.trim()) newErrors.username = global.t?.t('loginPage', 'label', 'Usuário é obrigatório') || 'Usuário é obrigatório';
+    if (!username.trim()) newErrors.username = global.t?.t('loginPage', 'label', 'Email é obrigatório') || 'Email é obrigatório';
     if (!password.trim()) newErrors.password = global.t?.t('loginPage', 'label', 'Senha é obrigatória') || 'Senha é obrigatória';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -140,7 +140,7 @@ export default function SignIn({ navigation }) {
             <View style={[styles.inputContainer, errors.username && styles.inputError]}>
               <Icon name="mail" size={20} color={colors.textSecondary} style={styles.inputIcon} />
               <TextInput
-                placeholder={global.t?.t('loginPage', 'label', 'Email ou Usuário') || 'Email ou Usuário'}
+                placeholder={global.t?.t('loginPage', 'label', 'Email') || 'Email '}
                 placeholderTextColor="#94A3B8"
                 style={styles.input}
                 value={username}
