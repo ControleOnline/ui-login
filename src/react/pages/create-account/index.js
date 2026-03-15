@@ -231,14 +231,14 @@ export default function CreateAccountPage() {
 
         <TextInput
           style={styles.input}
-          placeholder="Nome"
+          placeholder="Nome completo"
           value={people.name}
           onChangeText={v => setPeople({ ...people, name: v })}
         />
 
         <TextInput
           style={styles.input}
-          placeholder="Sobrenome / Alias"
+          placeholder="Como quer ser chamado?"
           value={people.alias}
           onChangeText={v => setPeople({ ...people, alias: v })}
         />
@@ -261,6 +261,7 @@ export default function CreateAccountPage() {
             style={[styles.input, styles.ddi]}
             placeholder="DDI"
             keyboardType="numeric"
+            maxLength={3}
             value={people.ddi}
             onChangeText={v =>
               setPeople({ ...people, ddi: Formatter.onlyNumbers(v) })
@@ -271,6 +272,7 @@ export default function CreateAccountPage() {
             style={[styles.input, styles.ddd]}
             placeholder="DDD"
             keyboardType="numeric"
+            maxLength={2}
             value={people.ddd}
             onChangeText={v =>
               setPeople({ ...people, ddd: Formatter.onlyNumbers(v) })
