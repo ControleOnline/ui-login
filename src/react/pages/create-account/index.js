@@ -17,7 +17,7 @@ import Formatter from '@controleonline/ui-common/src/utils/formatter';
 export default function CreateAccountPage() {
 
   const isManager = env.APP_TYPE === 'MANAGER';
-  const isMenu = env.APP_TYPE === 'MENU';
+  const isShop = env.APP_TYPE === 'SHOP';
 
   const [type, setType] = useState('PF');
   const [loading, setLoading] = useState(false);
@@ -151,7 +151,7 @@ export default function CreateAccountPage() {
 
   };
 
-  if (!isManager && !isMenu) {
+  if (!isManager && !isShop) {
 
     return (
       <View style={styles.center}>
