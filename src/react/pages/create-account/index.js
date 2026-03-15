@@ -17,6 +17,7 @@ import Formatter from '@controleonline/ui-common/src/utils/formatter';
 export default function CreateAccountPage() {
 
   const isManager = env.APP_TYPE === 'MANAGER';
+  const isMenu = env.APP_TYPE === 'MENU';
 
   const [type, setType] = useState('PF');
   const [loading, setLoading] = useState(false);
@@ -150,7 +151,7 @@ export default function CreateAccountPage() {
 
   };
 
-  if (!isManager) {
+  if (!isManager && !isMenu) {
 
     return (
       <View style={styles.center}>
@@ -175,197 +176,201 @@ export default function CreateAccountPage() {
       </View>
     );
 
-  }
+  } else {
 
-  return (
+    return (
 
-    <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView contentContainerStyle={styles.container}>
 
-      <Text style={styles.title}>
-        Criar Conta
-      </Text>
+        <Text style={styles.title}>
+          Criar Conta
+        </Text>
 
-      <View style={styles.typeSelector}>
+        <View style={styles.typeSelector}>
 
-        <TouchableOpacity
-          style={[
-            styles.typeButton,
-            type === 'PF' && styles.typeButtonActive,
-          ]}
-          onPress={() => setType('PF')}
-        >
-          <Text style={styles.typeText}>
-            Pessoa Física
-          </Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.typeButton,
+              type === 'PF' && styles.typeButtonActive,
+            ]}
+            onPress={() => setType('PF')}
+          >
+            <Text style={styles.typeText}>
+              Pessoa Física
+            </Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[
-            styles.typeButton,
-            type === 'PJ' && styles.typeButtonActive,
-          ]}
-          onPress={() => setType('PJ')}
-        >
-          <Text style={styles.typeText}>
-            Pessoa Jurídica
-          </Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.typeButton,
+              type === 'PJ' && styles.typeButtonActive,
+            ]}
+            onPress={() => setType('PJ')}
+          >
+            <Text style={styles.typeText}>
+              Pessoa Jurídica
+            </Text>
+          </TouchableOpacity>
 
-      </View>
+        </View>
 
-      <Text style={styles.section}>
-        Dados da Pessoa
-      </Text>
-
-      <TextInput
-        style={styles.input}
-        placeholder="CPF"
-        keyboardType="numeric"
-        value={people.document}
-        onChangeText={v =>
-          setPeople({ ...people, document: Formatter.maskBRDocument(v) })
-        }
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder="Nome"
-        value={people.name}
-        onChangeText={v => setPeople({ ...people, name: v })}
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder="Sobrenome / Alias"
-        value={people.alias}
-        onChangeText={v => setPeople({ ...people, alias: v })}
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        keyboardType="email-address"
-        value={people.email}
-        onChangeText={v => setPeople({ ...people, email: v })}
-      />
-
-      <Text style={styles.section}>
-        Telefone
-      </Text>
-
-      <View style={styles.phoneRow}>
+        <Text style={styles.section}>
+          Dados da Pessoa
+        </Text>
 
         <TextInput
-          style={[styles.input, styles.ddi]}
-          placeholder="DDI"
+          style={styles.input}
+          placeholder="CPF"
           keyboardType="numeric"
-          value={people.ddi}
+          maxLength={11+3} // 11 dígitos + máscara
+          value={people.document}
           onChangeText={v =>
-            setPeople({ ...people, ddi: Formatter.onlyNumbers(v) })
+            setPeople({ ...people, document: Formatter.maskCPF(v) })
           }
         />
 
         <TextInput
-          style={[styles.input, styles.ddd]}
-          placeholder="DDD"
-          keyboardType="numeric"
-          value={people.ddd}
-          onChangeText={v =>
-            setPeople({ ...people, ddd: Formatter.onlyNumbers(v) })
-          }
+          style={styles.input}
+          placeholder="Nome"
+          value={people.name}
+          onChangeText={v => setPeople({ ...people, name: v })}
         />
 
         <TextInput
-          style={[styles.input, styles.phone]}
-          placeholder="Telefone"
-          keyboardType="numeric"
-          value={people.phone}
-          onChangeText={v =>
-            setPeople({ ...people, phone: Formatter.maskPhoneBR(v) })
-          }
+          style={styles.input}
+          placeholder="Sobrenome / Alias"
+          value={people.alias}
+          onChangeText={v => setPeople({ ...people, alias: v })}
         />
 
-      </View>
+        <TextInput
+          style={styles.input}
+          placeholder="Email"
+          keyboardType="email-address"
+          value={people.email}
+          onChangeText={v => setPeople({ ...people, email: v })}
+        />
 
-      {type === 'PJ' && (
+        <Text style={styles.section}>
+          Telefone
+        </Text>
 
-        <>
-
-          <Text style={styles.section}>
-            Empresa
-          </Text>
+        <View style={styles.phoneRow}>
 
           <TextInput
-            style={styles.input}
-            placeholder="CNPJ"
+            style={[styles.input, styles.ddi]}
+            placeholder="DDI"
             keyboardType="numeric"
-            value={company.document}
+            value={people.ddi}
             onChangeText={v =>
-              setCompany({ ...company, document: Formatter.maskBRDocument(v) })
+              setPeople({ ...people, ddi: Formatter.onlyNumbers(v) })
             }
           />
 
           <TextInput
-            style={styles.input}
-            placeholder="Nome da empresa"
-            value={company.name}
+            style={[styles.input, styles.ddd]}
+            placeholder="DDD"
+            keyboardType="numeric"
+            value={people.ddd}
             onChangeText={v =>
-              setCompany({ ...company, name: v })
+              setPeople({ ...people, ddd: Formatter.onlyNumbers(v) })
             }
           />
 
           <TextInput
-            style={styles.input}
-            placeholder="Nome fantasia"
-            value={company.alias}
+            style={[styles.input, styles.phone]}
+            placeholder="Telefone"
+            keyboardType="numeric"
+            value={people.phone}
             onChangeText={v =>
-              setCompany({ ...company, alias: v })
+              setPeople({ ...people, phone: Formatter.maskPhoneBR(v) })
             }
           />
 
-        </>
+        </View>
 
-      )}
+        {type === 'PJ' && (
 
-      <Text style={styles.section}>
-        Usuário
-      </Text>
+          <>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Usuário"
-        value={people.user}
-        onChangeText={v =>
-          setPeople({ ...people, user: v })
-        }
-      />
+            <Text style={styles.section}>
+              Empresa
+            </Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Senha"
-        secureTextEntry
-        value={people.password}
-        onChangeText={v =>
-          setPeople({ ...people, password: v })
-        }
-      />
+            <TextInput
+              style={styles.input}
+              placeholder="CNPJ"
+              keyboardType="numeric"
+              maxLength={14+4} // 14 dígitos + máscara
+              value={company.document}
+              onChangeText={v =>
+                setCompany({ ...company, document: Formatter.maskCNPJ(v) })
+              }
+            />
 
-      <TouchableOpacity
-        style={styles.button}
-        onPress={handleCreateAccount}
-        disabled={loading}
-      >
+            <TextInput
+              style={styles.input}
+              placeholder="Nome da empresa"
+              value={company.name}
+              onChangeText={v =>
+                setCompany({ ...company, name: v })
+              }
+            />
 
-        {loading
-          ? <ActivityIndicator color="#fff" />
-          : <Text style={styles.buttonText}>Criar conta</Text>
-        }
+            <TextInput
+              style={styles.input}
+              placeholder="Nome fantasia"
+              value={company.alias}
+              onChangeText={v =>
+                setCompany({ ...company, alias: v })
+              }
+            />
 
-      </TouchableOpacity>
+          </>
 
-    </ScrollView>
+        )}
 
-  );
+        <Text style={styles.section}>
+          Usuário
+        </Text>
+
+        <TextInput
+          style={styles.input}
+          placeholder="Usuário"
+          value={people.user}
+          onChangeText={v =>
+            setPeople({ ...people, user: v })
+          }
+        />
+
+        <TextInput
+          style={styles.input}
+          placeholder="Senha"
+          secureTextEntry
+          value={people.password}
+          onChangeText={v =>
+            setPeople({ ...people, password: v })
+          }
+        />
+
+        <TouchableOpacity
+          style={styles.button}
+          onPress={handleCreateAccount}
+          disabled={loading}
+        >
+
+          {loading
+            ? <ActivityIndicator color="#fff" />
+            : <Text style={styles.buttonText}>Criar conta</Text>
+          }
+
+        </TouchableOpacity>
+
+      </ScrollView>
+
+    );
+
+  }
 
 }
 
