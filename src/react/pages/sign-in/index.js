@@ -56,6 +56,7 @@ export default function SignIn({ navigation }) {
     }
     return {};
   }, [defaultCompany?.id, currentCompany?.id]);
+
   const fallbackLogo = require('../../../../../../../src/assets/logo.png');
   const logoUrl = buildAssetUrl(brandCompany?.logo);
   const backgroundUrl = buildAssetUrl(
@@ -140,7 +141,7 @@ export default function SignIn({ navigation }) {
             <View style={[styles.inputContainer, errors.username && styles.inputError]}>
               <Icon name="mail" size={20} color={colors.textSecondary} style={styles.inputIcon} />
               <TextInput
-                placeholder={global.t?.t('loginPage', 'label', 'Email') || 'Email '}
+                placeholder={global.t?.t('loginPage', 'label', 'Email') || 'Email'}
                 placeholderTextColor="#94A3B8"
                 style={styles.input}
                 value={username}
@@ -165,10 +166,6 @@ export default function SignIn({ navigation }) {
               </TouchableOpacity>
             </View>
 
-            {/* <TouchableOpacity style={styles.forgotPassword}>
-              <Text style={styles.forgotPasswordText}>Esqueceu a senha?</Text>
-            </TouchableOpacity> */}
-
             <TouchableOpacity
               style={styles.loginButton}
               onPress={handleSignIn}
@@ -176,12 +173,22 @@ export default function SignIn({ navigation }) {
               {isLoading ? (
                 <ActivityIndicator color={colors.white} />
               ) : (
-                <Text style={styles.loginButtonText}>{global.t?.t('loginPage', 'label', 'Entrar') || 'Entrar'}</Text>
+                <Text style={styles.loginButtonText}>
+                  {global.t?.t('loginPage', 'label', 'Entrar') || 'Entrar'}
+                </Text>
               )}
             </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.createAccountButton}
+              onPress={() => navigation.navigate('CreateAccount')}>
+              <Text style={styles.createAccountText}>
+                {global.t?.t('loginPage', 'label', 'Criar conta') || 'Criar conta'}
+              </Text>
+            </TouchableOpacity>
+
           </Animatable.View>
         </View>
-
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -238,21 +245,6 @@ const styles = StyleSheet.create({
     height: 100,
     marginRight: 10,
   },
-  logoFallback: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    backgroundColor: '#EEF2FF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  brandName: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#0F172A',
-    letterSpacing: -0.5,
-  },
   subtitle: {
     fontSize: 15,
     color: colors.textSecondary,
@@ -264,7 +256,7 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F1F5F9', // Darker background for inputs
+    backgroundColor: '#F1F5F9',
     borderRadius: 12,
     paddingHorizontal: 16,
     height: 56,
@@ -274,7 +266,7 @@ const styles = StyleSheet.create({
   },
   inputError: {
     borderColor: colors.error,
-    backgroundColor: '#FEF2F2', // Keep or move to constants if needed, but acceptable for now
+    backgroundColor: '#FEF2F2',
   },
   inputIcon: {
     marginRight: 12,
@@ -284,29 +276,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#0F172A',
   },
-  forgotPassword: {
-    alignSelf: 'flex-end',
-    marginBottom: 24,
-  },
-  forgotPasswordText: {
-    color: colors.error,
-    // The reference image has red text. User said "like the photo". I'll use red for this link.
-    fontSize: 14,
-    fontWeight: '600',
-  },
   loginButton: {
-    backgroundColor: '#DC2626', // Red button as in reference image? 
-    // User said "like the photo... but in light theme". The photo effectively has RED branding.
-    // However, my system is Indigo. I should check if I should switch to Red branding.
-    // The user said "improve... more like the app... like the photo".
-    // I'll stick to Indigo (`#6366F1`) to match the rest of the CRM modification I did. 
-    // But wait, the user specifically pointed to the image. 
-    // I'll use Indigo for consistency, but maybe a simplified button style.
     backgroundColor: colors.primary,
     borderRadius: 12,
     height: 56,
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: 4,
     ...Platform.select({
       ios: {
         shadowColor: colors.primary,
@@ -327,7 +303,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
   },
+  createAccountButton: {
+    marginTop: 18,
+    alignItems: 'center',
+  },
+  createAccountText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: colors.primary,
+  },
 });
-
-
-
