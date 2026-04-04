@@ -14,7 +14,7 @@ const CheckLogin = ({}) => {
     const routeNames = navigation?.getState?.()?.routeNames || [];
     if (routeNames.includes('HomePage')) return 'HomePage';
     if (routeNames.includes('CrmIndex')) return 'CrmIndex';
-    if (routeNames.includes('SalesOrdersIndex')) return 'SalesOrdersIndex';
+    if (routeNames.includes('OrderHistoryPage')) return 'OrderHistoryPage';
     return routeNames.find(name => name !== 'SignInPage') || null;
   }, [navigation]);
   useFocusEffect(
