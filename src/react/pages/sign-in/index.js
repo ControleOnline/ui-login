@@ -12,12 +12,14 @@ import {
   StatusBar,
   Image,
   ImageBackground,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Animatable from 'react-native-animatable';
 import { useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Feather';
 import { useStore } from '@store';
+import { api } from '@controleonline/ui-common/src/api';
 import {useMessage} from '@controleonline/ui-common/src/react/components/MessageService';
 import {buildAssetUrl} from '@controleonline/../../src/styles/branding';
 
@@ -34,13 +36,16 @@ const getPostLoginRoute = navigation => {
 };
 
 export default function SignIn({ navigation }) {
-  const {showError} = useMessage();
+  const {showSuccess, showError} = useMessage();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isRecovering, setIsRecovering] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [logoLoadError, setLogoLoadError] = useState(false);
+  const [forgotPasswordVisible, setForgotPasswordVisible] = useState(false);
+  const [recoveryLogin, setRecoveryLogin] = useState('');
   const authStore = useStore('auth');
   const actions = authStore.actions;
   const peopleStore = useStore('people');
@@ -83,8 +88,8 @@ export default function SignIn({ navigation }) {
 
   const validateForm = () => {
     const newErrors = {};
-    if (!username.trim()) newErrors.username = global.t?.t('loginPage', 'label', 'Email é obrigatório') || 'Email é obrigatório';
-    if (!password.trim()) newErrors.password = global.t?.t('loginPage', 'label', 'Senha é obrigatória') || 'Senha é obrigatória';
+    if (!username.trim()) newErrors.username = global.t?.t('auth', 'label', 'Email é obrigatório') || 'Email é obrigatório';
+    if (!password.trim()) newErrors.password = global.t?.t('auth', 'label', 'Senha é obrigatória') || 'Senha é obrigatória';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -103,9 +108,44 @@ export default function SignIn({ navigation }) {
         });
       }
     } catch (error) {
-      showError(error.message || global.t?.t('loginPage', 'label', 'Credenciais inválidas. Tente novamente.') || 'Credenciais inválidas. Tente novamente.');
+      showError(error.message || global.t?.t('auth', 'label', 'Credenciais inválidas. Tente novamente.') || 'Credenciais inválidas. Tente novamente.');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleRecoverPassword = async () => {
+    const login = recoveryLogin.trim().toLowerCase();
+
+    if (!login) {
+      showError('Informe seu login para recuperar a senha.');
+      return;
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(login)) {
+      showError('Informe um e-mail válido para receber o link.');
+      return;
+    }
+
+    setIsRecovering(true);
+    try {
+      await api.fetch('/password_recoveries', {
+        method: 'POST',
+        body: {
+          username: login,
+          email: login,
+        },
+      });
+
+      showSuccess('Se o login existir, o link de recuperação será enviado para o e-mail informado.', {
+        duration: 4000,
+      });
+      setRecoveryLogin('');
+      setForgotPasswordVisible(false);
+    } catch (error) {
+      showError(error?.message || 'Não foi possível enviar o link de recuperação.');
+    } finally {
+      setIsRecovering(false);
     }
   };
 
@@ -133,7 +173,7 @@ export default function SignIn({ navigation }) {
             </Animatable.View>
 
             <Animatable.Text animation="fadeIn" delay={400} style={styles.subtitle}>
-              {global.t?.t('loginPage', 'label', 'Entre com suas credenciais para acessar') || 'Entre com suas credenciais para acessar'}
+              {global.t?.t('auth', 'label', 'Entre com suas credenciais para acessar') || 'Entre com suas credenciais para acessar'}
             </Animatable.Text>
           </View>
 
@@ -141,7 +181,7 @@ export default function SignIn({ navigation }) {
             <View style={[styles.inputContainer, errors.username && styles.inputError]}>
               <Icon name="mail" size={20} color={colors.textSecondary} style={styles.inputIcon} />
               <TextInput
-                placeholder={global.t?.t('loginPage', 'label', 'Email') || 'Email'}
+                placeholder={global.t?.t('auth', 'label', 'Email') || 'Email'}
                 placeholderTextColor="#94A3B8"
                 style={styles.input}
                 value={username}
@@ -154,7 +194,7 @@ export default function SignIn({ navigation }) {
             <View style={[styles.inputContainer, errors.password && styles.inputError]}>
               <Icon name="lock" size={20} color={colors.textSecondary} style={styles.inputIcon} />
               <TextInput
-                placeholder={global.t?.t('loginPage', 'label', 'Senha') || 'Senha'}
+                placeholder={global.t?.t('auth', 'label', 'Senha') || 'Senha'}
                 placeholderTextColor="#94A3B8"
                 style={styles.input}
                 value={password}
@@ -174,7 +214,7 @@ export default function SignIn({ navigation }) {
                 <ActivityIndicator color={colors.white} />
               ) : (
                 <Text style={styles.loginButtonText}>
-                  {global.t?.t('loginPage', 'label', 'Entrar') || 'Entrar'}
+                  {global.t?.t('auth', 'label', 'Entrar') || 'Entrar'}
                 </Text>
               )}
             </TouchableOpacity>
@@ -183,9 +223,55 @@ export default function SignIn({ navigation }) {
               style={styles.createAccountButton}
               onPress={() => navigation.navigate('CreateAccount')}>
               <Text style={styles.createAccountText}>
-                {global.t?.t('loginPage', 'label', 'Criar conta') || 'Criar conta'}
+                {global.t?.t('auth', 'label', 'Criar conta') || 'Criar conta'}
               </Text>
             </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.forgotPasswordButton}
+              onPress={() => setForgotPasswordVisible(true)}>
+              <Text style={styles.forgotPasswordText}>
+                {global.t?.t('auth', 'label', 'Esqueci minha senha') || 'Esqueci minha senha'}
+              </Text>
+            </TouchableOpacity>
+
+            <Modal
+              visible={forgotPasswordVisible}
+              transparent
+              animationType="fade"
+              onRequestClose={() => setForgotPasswordVisible(false)}>
+              <View style={styles.modalOverlay}>
+                <View style={styles.recoveryModalContent}>
+                  <Text style={styles.recoveryModalTitle}>
+                    {global.t?.t('auth', 'label', 'Recuperar senha') || 'Recuperar senha'}
+                  </Text>
+
+                  <TextInput
+                    placeholder={global.t?.t('auth', 'label', 'Login') || 'Login'}
+                    placeholderTextColor="#94A3B8"
+                    style={styles.recoveryInput}
+                    value={recoveryLogin}
+                    onChangeText={setRecoveryLogin}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    keyboardType="email-address"
+                  />
+
+                  <TouchableOpacity
+                    style={styles.loginButton}
+                    onPress={handleRecoverPassword}
+                    disabled={isRecovering}>
+                    {isRecovering ? (
+                      <ActivityIndicator color={colors.white} />
+                    ) : (
+                      <Text style={styles.loginButtonText}>
+                        {global.t?.t('auth', 'label', 'Recuperar senha') || 'Recuperar senha'}
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </Modal>
 
           </Animatable.View>
         </View>
@@ -276,6 +362,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#0F172A',
   },
+  forgotPasswordButton: {
+    marginTop: 10,
+    alignItems: 'center',
+  },
+  forgotPasswordText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.primary,
+  },
   loginButton: {
     backgroundColor: colors.primary,
     borderRadius: 12,
@@ -311,5 +406,37 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: colors.primary,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.45)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  recoveryModalContent: {
+    width: '100%',
+    maxWidth: 360,
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 20,
+  },
+  recoveryModalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#0F172A',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  recoveryInput: {
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 15,
+    color: '#0F172A',
+    backgroundColor: '#F8FAFC',
+    marginBottom: 12,
   },
 });
