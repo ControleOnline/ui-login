@@ -8,6 +8,7 @@ import { useStore } from '@store';
 import { api } from '@controleonline/ui-common/src/api';
 import {useMessage} from '@controleonline/ui-common/src/react/components/MessageService';
 import {buildAssetUrl} from '@controleonline/../../src/styles/branding';
+import {resolveCompanyGoogleOauthClientId} from '@controleonline/ui-common/src/utils/oauth';
 
 import { colors } from '@controleonline/../../src/styles/colors';
 import styles from './index.styles';
@@ -20,11 +21,139 @@ const getPostLoginRoute = navigation => {
   return routeNames.find(name => name !== 'SignInPage') || null;
 };
 
+const GOOGLE_OAUTH_SCRIPT_ID = 'google-oauth-client-script';
+const GOOGLE_OAUTH_SCOPE = 'openid email profile';
+
+let googleOauthScriptPromise = null;
+
+const getGoogleOauthApi = () => {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  return window.google?.accounts?.oauth2 || null;
+};
+
+const loadGoogleOauthApi = () => {
+  if (Platform.OS !== 'web') {
+    return Promise.reject(new Error('google-oauth-web-only'));
+  }
+
+  const existingApi = getGoogleOauthApi();
+  if (existingApi) {
+    return Promise.resolve(existingApi);
+  }
+
+  if (!googleOauthScriptPromise) {
+    googleOauthScriptPromise = new Promise((resolve, reject) => {
+      if (typeof document === 'undefined') {
+        reject(new Error('google-oauth-document-unavailable'));
+        return;
+      }
+
+      const handleLoad = () => {
+        const oauthApi = getGoogleOauthApi();
+
+        if (!oauthApi) {
+          reject(new Error('google-oauth-unavailable'));
+          return;
+        }
+
+        resolve(oauthApi);
+      };
+
+      const handleError = () => {
+        reject(new Error('google-oauth-load-failed'));
+      };
+
+      const existingScript = document.getElementById(GOOGLE_OAUTH_SCRIPT_ID);
+      if (existingScript) {
+        existingScript.addEventListener('load', handleLoad, {once: true});
+        existingScript.addEventListener('error', handleError, {once: true});
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.id = GOOGLE_OAUTH_SCRIPT_ID;
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      script.onload = handleLoad;
+      script.onerror = handleError;
+      document.head.appendChild(script);
+    }).catch(error => {
+      googleOauthScriptPromise = null;
+      throw error;
+    });
+  }
+
+  return googleOauthScriptPromise;
+};
+
+const requestGoogleAccessToken = async clientId => {
+  const oauthApi = await loadGoogleOauthApi();
+
+  return new Promise((resolve, reject) => {
+    const tokenClient = oauthApi.initTokenClient({
+      client_id: clientId,
+      scope: GOOGLE_OAUTH_SCOPE,
+      callback: tokenResponse => {
+        if (tokenResponse?.error) {
+          reject(
+            new Error(tokenResponse.error_description || tokenResponse.error),
+          );
+          return;
+        }
+
+        if (!tokenResponse?.access_token) {
+          reject(new Error('google-access-token-missing'));
+          return;
+        }
+
+        resolve(tokenResponse.access_token);
+      },
+      error_callback: oauthError => {
+        reject(
+          new Error(
+            oauthError?.message ||
+              oauthError?.type ||
+              'google-oauth-request-failed',
+          ),
+        );
+      },
+    });
+
+    tokenClient.requestAccessToken({prompt: 'select_account'});
+  });
+};
+
+const resolveGoogleOauthErrorMessage = error => {
+  const errorMessage = String(error?.message || '').trim().toLowerCase();
+
+  if (errorMessage === 'popup_closed') {
+    return 'A janela do Google foi fechada antes da autenticacao.';
+  }
+
+  if (
+    errorMessage === 'google-oauth-load-failed' ||
+    errorMessage === 'google-oauth-unavailable'
+  ) {
+    return 'Nao foi possivel carregar a autenticacao do Google.';
+  }
+
+  if (errorMessage === 'google-access-token-missing') {
+    return 'O Google nao retornou um token de acesso valido.';
+  }
+
+  return error?.message || 'Nao foi possivel entrar com Google.';
+};
+
 export default function SignIn({ navigation }) {
   const {showSuccess, showError} = useMessage();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isRecovering, setIsRecovering] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
@@ -45,7 +174,15 @@ export default function SignIn({ navigation }) {
       return currentCompany;
     }
     return {};
-  }, [defaultCompany?.id, currentCompany?.id]);
+  }, [currentCompany, defaultCompany]);
+
+  const googleClientId = useMemo(
+    () =>
+      resolveCompanyGoogleOauthClientId(defaultCompany) ||
+      resolveCompanyGoogleOauthClientId(currentCompany),
+    [currentCompany, defaultCompany],
+  );
+  const canUseGoogleLogin = Platform.OS === 'web' && !!googleClientId;
 
   const fallbackLogo = require('../../../../../../../src/assets/logo.png');
   const logoUrl = buildAssetUrl(brandCompany?.logo);
@@ -56,6 +193,14 @@ export default function SignIn({ navigation }) {
   useEffect(() => {
     setLogoLoadError(false);
   }, [logoUrl]);
+
+  useEffect(() => {
+    if (!canUseGoogleLogin) {
+      return;
+    }
+
+    loadGoogleOauthApi().catch(() => {});
+  }, [canUseGoogleLogin, googleClientId]);
 
   useFocusEffect(
     useCallback(() => {
@@ -96,6 +241,33 @@ export default function SignIn({ navigation }) {
       showError(error.message || global.t?.t('auth', 'label', 'Credenciais inválidas. Tente novamente.') || 'Credenciais inválidas. Tente novamente.');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    if (!googleClientId) {
+      showError('Login com Google nao configurado para esta empresa.');
+      return;
+    }
+
+    setIsGoogleLoading(true);
+    setErrors({});
+
+    try {
+      const accessToken = await requestGoogleAccessToken(googleClientId);
+      await actions.gSignIn({access_token: accessToken});
+
+      const postLoginRoute = getPostLoginRoute(navigation);
+      if (postLoginRoute) {
+        navigation.reset({
+          index: 0,
+          routes: [{name: postLoginRoute}],
+        });
+      }
+    } catch (error) {
+      showError(resolveGoogleOauthErrorMessage(error));
+    } finally {
+      setIsGoogleLoading(false);
     }
   };
 
@@ -194,7 +366,7 @@ export default function SignIn({ navigation }) {
             <TouchableOpacity
               style={styles.loginButton}
               onPress={handleSignIn}
-              disabled={isLoading}>
+              disabled={isLoading || isGoogleLoading}>
               {isLoading ? (
                 <ActivityIndicator color={colors.white} />
               ) : (
@@ -203,6 +375,40 @@ export default function SignIn({ navigation }) {
                 </Text>
               )}
             </TouchableOpacity>
+
+            {canUseGoogleLogin && (
+              <>
+                <View style={styles.oauthDivider}>
+                  <View style={styles.oauthDividerLine} />
+                  <Text style={styles.oauthDividerText}>
+                    {global.t?.t('login', 'message', 'or') || 'ou'}
+                  </Text>
+                  <View style={styles.oauthDividerLine} />
+                </View>
+
+                <TouchableOpacity
+                  style={[
+                    styles.googleButton,
+                    (isLoading || isGoogleLoading) && styles.googleButtonDisabled,
+                  ]}
+                  onPress={handleGoogleSignIn}
+                  disabled={isLoading || isGoogleLoading}>
+                  {isGoogleLoading ? (
+                    <ActivityIndicator color="#0F172A" />
+                  ) : (
+                    <>
+                      <View style={styles.googleButtonBadge}>
+                        <Text style={styles.googleButtonBadgeText}>G</Text>
+                      </View>
+                      <Text style={styles.googleButtonText}>
+                        {global.t?.t('login', 'message', 'with_google') ||
+                          'Entrar com Google'}
+                      </Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </>
+            )}
 
             <TouchableOpacity
               style={styles.createAccountButton}

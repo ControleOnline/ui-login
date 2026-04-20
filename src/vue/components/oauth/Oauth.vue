@@ -9,7 +9,6 @@
   </div>
 </template>
 <script>
-
 import Google from "./Google.vue";
 
 export default {

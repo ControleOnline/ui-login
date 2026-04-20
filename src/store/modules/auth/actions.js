@@ -1,7 +1,7 @@
 import { api } from "@controleonline/ui-common/src/api";
 import * as types from "./mutation_types";
 
-export const signIn = ({ commit, state }, values) => {
+export const signIn = ({ commit }, values) => {
   commit(types.LOGIN_SET_ERROR, "");
   commit(types.LOGIN_SET_ISLOADING);
 
@@ -19,7 +19,7 @@ export const signIn = ({ commit, state }, values) => {
       }
 
       // só loga se passou em todas as validações
-      logIn({ commit, state }, data);
+      logIn({ commit }, data);
 
       return data;
     })
@@ -32,7 +32,7 @@ export const signIn = ({ commit, state }, values) => {
     });
 };
 
-export const getUserStatus = ({ commit }, values) => {
+export const getUserStatus = ({ commit }, _values) => {
   if (!localStorage.getItem("session")) return;
 
   let session = JSON.parse(localStorage.getItem("session")) || {};
@@ -49,8 +49,19 @@ export const gSignIn = ({ commit }, values) => {
   return api
     .fetch("oauth/google/return", { method: "POST", params: values })
     .then((response) => {
-      logIn({ commit, state }, response.response.data);
-      return response;
+      const user =
+        response?.response?.data ?? response?.data ?? response ?? null;
+
+      if (!user || user.error) {
+        throw new Error(user?.error || "Credenciais inválidas");
+      }
+
+      if ((user.active !== 1 && user.active !== true) || !user.api_key) {
+        throw new Error("Credenciais inválidas");
+      }
+
+      logIn({ commit }, user);
+      return user;
     })
     .catch((e) => {
       commit(types.LOGIN_SET_ERROR, e.message);
@@ -73,8 +84,12 @@ export const signUp = ({ commit }, values) => {
     })
     .then((data) => {
       if (data.response) {
-        if (data.response.success === true)
-          logIn({ commit, state }, response.response.data);
+        const sessionData = data.response?.data ?? null;
+
+        if (data.response.success === true && sessionData) {
+          logIn({ commit }, sessionData);
+        }
+
         return data.response;
       }
       return null;
@@ -84,18 +99,18 @@ export const signUp = ({ commit }, values) => {
     });
 };
 
-export const logIn = ({ commit, state }, user = null) => {
+export const logIn = ({ commit }, user = null) => {
   localStorage.setItem("session", JSON.stringify(user));
   commit(types.LOGIN_SET_USER, user);
   commit(types.LOGIN_SET_IS_LOGGED, user?.active ? true : false);
 };
 
-export const isLogged = ({ commit, state }) => {
-  let user = getLoggedUser({ commit, state });
+export const isLogged = ({ state }) => {
+  let user = getLoggedUser({ state });
   return user?.active ? true : false;
 };
 
-export const getLoggedUser = ({ commit, state }) => {
+export const getLoggedUser = ({ state }) => {
   return state?.user;
 };
 
