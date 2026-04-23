@@ -68,17 +68,17 @@ const styles = StyleSheet.create({
   },
 
   ddi: {
-    flex: 1,
+    width: 72,
     marginRight: 8,
   },
 
   ddd: {
-    flex: 1,
+    width: 76,
     marginRight: 8,
   },
 
   phone: {
-    flex: 3,
+    flex: 1,
   },
 
   button: {
