@@ -7,6 +7,13 @@ import { colors } from '@controleonline/../../src/styles/colors';
 import Formatter from '@controleonline/ui-common/src/utils/formatter';
 import styles from './index.styles';
 
+const resolveApiErrorMessage = payload =>
+  payload?.['hydra:description'] ||
+  payload?.message ||
+  payload?.error ||
+  payload?.['hydra:title'] ||
+  'Erro ao criar conta';
+
 export default function CreateAccountPage() {
 
   const isManager = env.APP_TYPE === 'MANAGER';
@@ -128,7 +135,7 @@ export default function CreateAccountPage() {
       const json = await response.json();
 
       if (!response.ok)
-        throw new Error(json.message || 'Erro ao criar conta');
+        throw new Error(resolveApiErrorMessage(json));
 
       alert('Conta criada com sucesso!');
 
