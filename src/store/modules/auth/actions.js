@@ -1,6 +1,25 @@
 import { api } from "@controleonline/ui-common/src/api";
 import * as types from "./mutation_types";
 
+const clearStoredSession = (commit) => {
+  localStorage.removeItem("session");
+  commit(types.LOGIN_SET_USER, null);
+  commit(types.LOGIN_SET_IS_LOGGED, false);
+};
+
+const parseStoredSession = () => {
+  const sessionString = localStorage.getItem("session");
+  if (!sessionString) return null;
+
+  try {
+    const session = JSON.parse(sessionString) || null;
+    return session && typeof session === "object" ? session : null;
+  } catch {
+    localStorage.removeItem("session");
+    return null;
+  }
+};
+
 export const signIn = ({ commit }, values) => {
   commit(types.LOGIN_SET_ERROR, "");
   commit(types.LOGIN_SET_ISLOADING);
@@ -40,6 +59,35 @@ export const getUserStatus = ({ commit }, _values) => {
   api.fetch(`people/${session.people}/status`, {}).then((response) => {
     commit("SET_PEOPLE_STATUS", response.response.data);
   });
+};
+
+export const restoreSession = async ({ commit }) => {
+  commit(types.LOGIN_SET_SESSION_CHECKED, false);
+
+  const session = parseStoredSession();
+  const hasValidShape =
+    !!session?.id &&
+    !!session?.people &&
+    !!session?.api_key &&
+    (session.active === 1 || session.active === true);
+
+  if (!hasValidShape) {
+    clearStoredSession(commit);
+    commit(types.LOGIN_SET_SESSION_CHECKED, true);
+    return null;
+  }
+
+  try {
+    await api.fetch(`people/${session.people}/status`, {});
+    commit(types.LOGIN_SET_USER, session);
+    commit(types.LOGIN_SET_IS_LOGGED, true);
+    return session;
+  } catch {
+    clearStoredSession(commit);
+    return null;
+  } finally {
+    commit(types.LOGIN_SET_SESSION_CHECKED, true);
+  }
 };
 
 export const gSignIn = ({ commit }, values) => {
@@ -103,6 +151,7 @@ export const logIn = ({ commit }, user = null) => {
   localStorage.setItem("session", JSON.stringify(user));
   commit(types.LOGIN_SET_USER, user);
   commit(types.LOGIN_SET_IS_LOGGED, user?.active ? true : false);
+  commit(types.LOGIN_SET_SESSION_CHECKED, true);
 };
 
 export const isLogged = ({ state }) => {
@@ -118,6 +167,7 @@ export const logOut = ({ commit }) => {
   
   commit(types.LOGIN_SET_USER, null);
   commit(types.LOGIN_SET_IS_LOGGED, false);
+  commit(types.LOGIN_SET_SESSION_CHECKED, true);
   localStorage.clear();
 
 };

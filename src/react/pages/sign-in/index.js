@@ -438,7 +438,7 @@ export default function SignIn({ navigation }) {
                   </Text>
 
                   <TextInput
-                    placeholder={global.t?.t('auth', 'label', 'Login') || 'Login'}
+                    placeholder={global.t?.t('auth', 'label', 'E-mail') || 'E-mail'}
                     placeholderTextColor="#94A3B8"
                     style={styles.recoveryInput}
                     value={recoveryLogin}

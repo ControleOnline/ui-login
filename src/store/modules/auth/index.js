@@ -7,6 +7,7 @@ export default {
     user: {},
     isLoading: false,
     isLogged: false,
+    sessionChecked: false,
     error: '',
     created: null,
     indexRoute: 'HomeIndex',

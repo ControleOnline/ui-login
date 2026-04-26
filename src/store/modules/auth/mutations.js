@@ -3,7 +3,7 @@ import * as types from './mutation_types';
 export default {
   [types.LOGIN_SET_USER](state, user) {
     if (!user) {
-      localStorage.clear();
+      localStorage.removeItem('session');
       state.user = user;
       state.isLogged = false;
     } else {
@@ -43,5 +43,9 @@ export default {
   [types.LOGIN_SET_IS_LOGGED](state, isLogged) {
     state.isLogged = isLogged || false;
     return 'isLogged';
+  },
+  [types.LOGIN_SET_SESSION_CHECKED](state, sessionChecked) {
+    state.sessionChecked = sessionChecked === true;
+    return 'sessionChecked';
   },
 };
