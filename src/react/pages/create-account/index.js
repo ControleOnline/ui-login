@@ -4,20 +4,16 @@ import { Text, View, TextInput, TouchableOpacity, ActivityIndicator, ScrollView 
 import QRCode from 'react-native-qrcode-svg';
 import { env } from '@env';
 import { colors } from '@controleonline/../../src/styles/colors';
+import { useMessage } from '@controleonline/ui-common/src/react/components/MessageService';
 import Formatter from '@controleonline/ui-common/src/utils/formatter';
 import styles from './index.styles';
-
-const resolveApiErrorMessage = payload =>
-  payload?.['hydra:description'] ||
-  payload?.message ||
-  payload?.error ||
-  payload?.['hydra:title'] ||
-  'Erro ao criar conta';
+import { resolveCreateAccountErrorMessage } from './errorMessage';
 
 export default function CreateAccountPage() {
 
   const isManager = env.APP_TYPE === 'MANAGER';
   const isShop = env.APP_TYPE === 'SHOP';
+  const { showError, showSuccess } = useMessage() || {};
 
   const [type, setType] = useState('PF');
   const [loading, setLoading] = useState(false);
@@ -83,7 +79,7 @@ export default function CreateAccountPage() {
     const error = validateForm();
 
     if (error) {
-      alert(error);
+      showError?.(error);
       return;
     }
 
@@ -132,16 +128,25 @@ export default function CreateAccountPage() {
         },
       );
 
-      const json = await response.json();
+      const responseText = await response.text();
+      let json = {};
+
+      if (responseText) {
+        try {
+          json = JSON.parse(responseText);
+        } catch (_error) {
+          json = { message: responseText };
+        }
+      }
 
       if (!response.ok)
-        throw new Error(resolveApiErrorMessage(json));
+        throw new Error(resolveCreateAccountErrorMessage(json));
 
-      alert('Conta criada com sucesso!');
+      showSuccess?.('Conta criada com sucesso!');
 
     } catch (e) {
 
-      alert(e.message);
+      showError?.(resolveCreateAccountErrorMessage(e));
 
     } finally {
 
