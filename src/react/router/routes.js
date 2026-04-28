@@ -5,19 +5,19 @@ const loginRoutes = [
   {
     name: "SignInPage",
     component: SignInPage,
-    options: { headerShown: false },
+    options: { headerShown: false, showBottomToolBar: false },
   },
 
   {
     name: "CreateAccount",
     component: CreateAccount,
-    options: { headerShown: false },
+    options: { headerShown: false, showBottomToolBar: false },
   },
   {
     name: "ResetPasswordPage",
     path: "reset-password",
     component: ResetPasswordPage,
-    options: { headerShown: false },
+    options: { headerShown: false, showBottomToolBar: false },
   },
   
 ];
