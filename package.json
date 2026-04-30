@@ -5,7 +5,9 @@
   "description": "ControleOnline login Quasar UI Component",
   "license": "MIT",
   "main": "src/vue/index.js",
-  "scripts": {},
+  "scripts": {
+    "test:create-account-error-message": "node --test src/tests/react/pages/create-account.errorMessage.test.js"
+  },
   "repository": {
     "type": "git",
 
