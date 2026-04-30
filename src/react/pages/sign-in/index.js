@@ -9,6 +9,11 @@ import { api } from '@controleonline/ui-common/src/api';
 import {useMessage} from '@controleonline/ui-common/src/react/components/MessageService';
 import {buildAssetUrl} from '@controleonline/../../src/styles/branding';
 import {resolveCompanyGoogleOauthClientId} from '@controleonline/ui-common/src/utils/oauth';
+import {
+  buildRecoveryRequestSuccessMessage,
+  normalizeRecoveryLogin,
+  validateRecoveryRequestLogin,
+} from '@controleonline/ui-login/src/react/pages/password-recovery/helpers';
 
 import { colors } from '@controleonline/../../src/styles/colors';
 import styles from './index.styles';
@@ -272,15 +277,11 @@ export default function SignIn({ navigation }) {
   };
 
   const handleRecoverPassword = async () => {
-    const login = recoveryLogin.trim().toLowerCase();
+    const login = normalizeRecoveryLogin(recoveryLogin);
+    const validationMessage = validateRecoveryRequestLogin(recoveryLogin);
 
-    if (!login) {
-      showError('Informe seu login para recuperar a senha.');
-      return;
-    }
-
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(login)) {
-      showError('Informe um e-mail válido para receber o link.');
+    if (validationMessage) {
+      showError(validationMessage);
       return;
     }
 
@@ -294,7 +295,7 @@ export default function SignIn({ navigation }) {
         },
       });
 
-      showSuccess('Se o login existir, o link de recuperação será enviado para o e-mail informado.', {
+      showSuccess(buildRecoveryRequestSuccessMessage(), {
         duration: 4000,
       });
       setRecoveryLogin('');
@@ -435,6 +436,10 @@ export default function SignIn({ navigation }) {
                 <View style={styles.recoveryModalContent}>
                   <Text style={styles.recoveryModalTitle}>
                     {global.t?.t('auth', 'label', 'Recuperar senha') || 'Recuperar senha'}
+                  </Text>
+
+                  <Text style={styles.recoveryModalHint}>
+                    O link enviado por e-mail fica disponivel por 15 minutos.
                   </Text>
 
                   <TextInput

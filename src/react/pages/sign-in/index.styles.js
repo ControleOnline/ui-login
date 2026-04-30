@@ -191,6 +191,12 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     textAlign: 'center',
   },
+  recoveryModalHint: {
+    color: colors.textSecondary,
+    fontSize: 13,
+    marginBottom: 16,
+    textAlign: 'center',
+  },
   recoveryInput: {
     borderWidth: 1,
     borderColor: '#E2E8F0',

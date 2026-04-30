@@ -5,7 +5,9 @@
   "description": "ControleOnline login Quasar UI Component",
   "license": "MIT",
   "main": "src/vue/index.js",
-  "scripts": {},
+  "scripts": {
+    "test:password-recovery": "node --test src/tests/react/password-recovery.helpers.test.js"
+  },
   "repository": {
     "type": "git",
 

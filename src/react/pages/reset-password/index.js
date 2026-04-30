@@ -20,6 +20,10 @@ import {api} from '@controleonline/ui-common/src/api';
 import {useMessage} from '@controleonline/ui-common/src/react/components/MessageService';
 import {buildAssetUrl} from '@controleonline/../../src/styles/branding';
 import {colors} from '@controleonline/../../src/styles/colors';
+import {
+  RECOVERY_LINK_DURATION_MINUTES,
+  validateResetPasswordPayload,
+} from '@controleonline/ui-login/src/react/pages/password-recovery/helpers';
 import signInStyles from '../sign-in/index.styles';
 
 const getRouteParam = value => {
@@ -75,24 +79,12 @@ export default function ResetPasswordPage({navigation, route}) {
   }, [logoUrl]);
 
   const validateForm = () => {
-    const nextErrors = {};
-
-    if (!recoveryHash || !recoveryLost) {
-      nextErrors.recovery =
-        'O link de recuperacao esta incompleto ou expirou.';
-    }
-
-    if (!password.trim()) {
-      nextErrors.password = 'Informe a nova senha.';
-    } else if (password.trim().length < 6) {
-      nextErrors.password = 'A senha precisa ter pelo menos 6 caracteres.';
-    }
-
-    if (!confirmPassword.trim()) {
-      nextErrors.confirmPassword = 'Confirme a nova senha.';
-    } else if (confirmPassword !== password) {
-      nextErrors.confirmPassword = 'As senhas informadas nao coincidem.';
-    }
+    const nextErrors = validateResetPasswordPayload({
+      hash: recoveryHash,
+      lost: recoveryLost,
+      password,
+      confirmPassword,
+    });
 
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
@@ -171,7 +163,7 @@ export default function ResetPasswordPage({navigation, route}) {
               animation="fadeIn"
               delay={450}
               style={signInStyles.subtitle}>
-              Use o link temporario enviado por e-mail para concluir a recuperacao.
+              {`Use o link temporario enviado por e-mail para concluir a recuperacao em ate ${RECOVERY_LINK_DURATION_MINUTES} minutos.`}
             </Animatable.Text>
           </View>
 
