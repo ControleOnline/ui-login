@@ -19,10 +19,14 @@ const CheckLogin = ({}) => {
     return routeNames.find(name => name !== 'SignInPage') || null;
   }, [navigation]);
   useEffect(() => {
+    if (sessionChecked) {
+      return;
+    }
+
     authActions.restoreSession().catch(() => {
       authActions.logIn(null);
     });
-  }, [authActions]);
+  }, [authActions, sessionChecked]);
 
   useFocusEffect(
     useCallback(() => {
