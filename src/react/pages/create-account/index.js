@@ -41,7 +41,8 @@ export default function CreateAccountPage() {
   });
 
   const managerUrl = useMemo(() => {
-    return `${env.MANAGER_APP}/create-account`;
+    const managerApp = env.MANAGER_APP || 'https://admin.controleonline.com';
+    return `${managerApp.replace(/\/$/, '')}/create-account`;
   }, []);
 
   const validateForm = () => {
