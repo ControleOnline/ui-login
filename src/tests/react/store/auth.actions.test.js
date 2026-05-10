@@ -85,4 +85,31 @@ describe('auth restoreSession', () => {
       true,
     )
   })
+
+  it('falls back to people details when the status endpoint returns 404', async () => {
+    const session = {
+      id: 8,
+      people: 33,
+      api_key: 'valid-token',
+      active: 1,
+    }
+
+    global.localStorage = createStorage({
+      session: JSON.stringify(session),
+    })
+
+    api.fetch
+      .mockRejectedValueOnce({status: 404})
+      .mockResolvedValueOnce({id: 33, enable: true})
+
+    const commit = jest.fn()
+
+    const restored = await actions.restoreSession({commit})
+
+    expect(restored).toEqual(session)
+    expect(api.fetch).toHaveBeenNthCalledWith(1, 'people/33/status', {})
+    expect(api.fetch).toHaveBeenNthCalledWith(2, 'people/33', {})
+    expect(commit).toHaveBeenCalledWith(types.LOGIN_SET_USER, session)
+    expect(commit).toHaveBeenCalledWith(types.LOGIN_SET_IS_LOGGED, true)
+  })
 })

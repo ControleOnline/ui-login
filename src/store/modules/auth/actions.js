@@ -20,6 +20,24 @@ const parseStoredSession = () => {
   }
 };
 
+const isNotFoundError = error =>
+  Number(error?.status || error?.code) === 404;
+
+const normalizeStatusResponse = response =>
+  response?.response?.data ?? response?.data ?? response ?? null;
+
+const fetchPeopleStatus = async peopleId => {
+  try {
+    return await api.fetch(`people/${peopleId}/status`, {});
+  } catch (error) {
+    if (!isNotFoundError(error)) {
+      throw error;
+    }
+
+    return api.fetch(`people/${peopleId}`, {});
+  }
+};
+
 export const signIn = ({ commit }, values) => {
   commit(types.LOGIN_SET_ERROR, "");
   commit(types.LOGIN_SET_ISLOADING);
@@ -56,9 +74,9 @@ export const getUserStatus = ({ commit }, _values) => {
 
   let session = JSON.parse(localStorage.getItem("session")) || {};
 
-  api.fetch(`people/${session.people}/status`, {}).then((response) => {
-    commit("SET_PEOPLE_STATUS", response.response.data);
-  });
+  fetchPeopleStatus(session.people).then((response) => {
+    commit("SET_PEOPLE_STATUS", normalizeStatusResponse(response));
+  }).catch(() => {});
 };
 
 export const restoreSession = async ({ commit }) => {
@@ -78,7 +96,7 @@ export const restoreSession = async ({ commit }) => {
   }
 
   try {
-    await api.fetch(`people/${session.people}/status`, {});
+    await fetchPeopleStatus(session.people);
     commit(types.LOGIN_SET_USER, session);
     commit(types.LOGIN_SET_IS_LOGGED, true);
     return session;
