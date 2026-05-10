@@ -414,7 +414,7 @@ export default function SignIn({ navigation }) {
               style={styles.createAccountButton}
               onPress={() => navigation.navigate('CreateAccount')}>
               <Text style={styles.createAccountText}>
-                {global.t?.t('auth', 'label', 'Criar conta') || 'Criar conta'}
+                {global.t?.t('auth', 'label', 'createAccount') || 'Criar conta'}
               </Text>
             </TouchableOpacity>
 
@@ -422,7 +422,7 @@ export default function SignIn({ navigation }) {
               style={styles.forgotPasswordButton}
               onPress={() => setForgotPasswordVisible(true)}>
               <Text style={styles.forgotPasswordText}>
-                {global.t?.t('auth', 'label', 'Esqueci minha senha') || 'Esqueci minha senha'}
+                {global.t?.t('auth', 'label', 'forgotPassword') || 'Esqueci minha senha'}
               </Text>
             </TouchableOpacity>
 
@@ -434,7 +434,7 @@ export default function SignIn({ navigation }) {
               <View style={styles.modalOverlay}>
                 <View style={styles.recoveryModalContent}>
                   <Text style={styles.recoveryModalTitle}>
-                    {global.t?.t('auth', 'label', 'Recuperar senha') || 'Recuperar senha'}
+                    {global.t?.t('auth', 'label', 'recoverPassword') || 'Recuperar senha'}
                   </Text>
 
                   <TextInput
@@ -456,7 +456,7 @@ export default function SignIn({ navigation }) {
                       <ActivityIndicator color={colors.white} />
                     ) : (
                       <Text style={styles.loginButtonText}>
-                        {global.t?.t('auth', 'label', 'Recuperar senha') || 'Recuperar senha'}
+                        {global.t?.t('auth', 'label', 'recoverPassword') || 'Recuperar senha'}
                       </Text>
                     )}
                   </TouchableOpacity>
