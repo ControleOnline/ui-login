@@ -101,24 +101,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  backButton: {
-    marginTop: 24,
-    minWidth: 220,
-    minHeight: 48,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  backButtonText: {
-    color: colors.primary,
-    fontSize: 16,
-    fontWeight: '700',
-  },
-
 });
 
 export default styles;

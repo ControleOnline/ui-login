@@ -3,6 +3,7 @@ import { Text, View, TextInput, TouchableOpacity, ActivityIndicator, ScrollView 
 
 import QRCode from 'react-native-qrcode-svg';
 import { env } from '@env';
+import { colors } from '@controleonline/../../src/styles/colors';
 import Formatter from '@controleonline/ui-common/src/utils/formatter';
 import styles from './index.styles';
 
@@ -13,7 +14,7 @@ const resolveApiErrorMessage = payload =>
   payload?.['hydra:title'] ||
   'Erro ao criar conta';
 
-export default function CreateAccountPage({ navigation }) {
+export default function CreateAccountPage() {
 
   const isManager = env.APP_TYPE === 'MANAGER';
   const isShop = env.APP_TYPE === 'SHOP';
@@ -40,16 +41,8 @@ export default function CreateAccountPage({ navigation }) {
   });
 
   const managerUrl = useMemo(() => {
-    const managerApp = env.MANAGER_APP || 'https://admin.controleonline.com';
-    return `${managerApp.replace(/\/$/, '')}/create-account`;
+    return `${env.MANAGER_APP}/create-account`;
   }, []);
-
-  const handleGoToSignIn = () => {
-    navigation?.reset({
-      index: 0,
-      routes: [{ name: 'SignInPage' }],
-    });
-  };
 
   const validateForm = () => {
 
@@ -179,15 +172,6 @@ export default function CreateAccountPage({ navigation }) {
         <Text style={styles.qrText}>
           {managerUrl}
         </Text>
-
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={handleGoToSignIn}
-        >
-          <Text style={styles.backButtonText}>
-            Voltar para o login
-          </Text>
-        </TouchableOpacity>
 
       </View>
     );
