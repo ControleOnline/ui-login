@@ -182,12 +182,28 @@ export const getLoggedUser = ({ state }) => {
 };
 
 export const logOut = ({ commit }) => {
-  
+  let clearManagerPushTokenPromise = null;
+
+  if (typeof global.clearManagerPushTokenOnLogout === 'function') {
+    try {
+      clearManagerPushTokenPromise = global.clearManagerPushTokenOnLogout();
+    } catch (error) {
+      console.warn('Failed to clear manager push token on logout', error);
+    }
+  }
+
   commit(types.LOGIN_SET_USER, null);
   commit(types.LOGIN_SET_IS_LOGGED, false);
   commit(types.LOGIN_SET_SESSION_CHECKED, true);
-  localStorage.clear();
 
+  if (clearManagerPushTokenPromise?.finally) {
+    clearManagerPushTokenPromise.finally(() => {
+      localStorage.clear();
+    });
+    return;
+  }
+
+  localStorage.clear();
 };
 
 export const setIndexRoute = ({ commit }, indexRoute) => {
