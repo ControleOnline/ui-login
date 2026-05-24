@@ -4,6 +4,10 @@ import { Text, View, TextInput, TouchableOpacity, ActivityIndicator, ScrollView 
 import QRCode from 'react-native-qrcode-svg';
 import { env } from '@env';
 import { colors } from '@controleonline/../../src/styles/colors';
+import {
+  formatDisplayUppercase,
+  uppercaseText,
+} from '@controleonline/ui-common/src/react/utils/entityDisplay';
 import Formatter from '@controleonline/ui-common/src/utils/formatter';
 import styles from './index.styles';
 
@@ -94,8 +98,8 @@ export default function CreateAccountPage() {
       const payload = {
         people: {
           document: Formatter.onlyNumbers(people.document),
-          name: people.name,
-          alias: people.alias,
+          name: formatDisplayUppercase(people.name),
+          alias: formatDisplayUppercase(people.alias),
           email: people.email,
           phone: {
             ddi: people.ddi,
@@ -113,8 +117,8 @@ export default function CreateAccountPage() {
 
         payload.company = {
           document: Formatter.onlyNumbers(company.document),
-          name: company.name,
-          alias: company.alias,
+          name: formatDisplayUppercase(company.name),
+          alias: formatDisplayUppercase(company.alias),
         };
 
       }
@@ -233,14 +237,14 @@ export default function CreateAccountPage() {
           style={styles.input}
           placeholder="Nome completo"
           value={people.name}
-          onChangeText={v => setPeople({ ...people, name: v })}
+          onChangeText={v => setPeople({ ...people, name: uppercaseText(v) })}
         />
 
         <TextInput
           style={styles.input}
           placeholder="Como quer ser chamado?"
           value={people.alias}
-          onChangeText={v => setPeople({ ...people, alias: v })}
+          onChangeText={v => setPeople({ ...people, alias: uppercaseText(v) })}
         />
 
         <TextInput
@@ -315,7 +319,7 @@ export default function CreateAccountPage() {
               placeholder="Nome da empresa"
               value={company.name}
               onChangeText={v =>
-                setCompany({ ...company, name: v })
+                setCompany({ ...company, name: uppercaseText(v) })
               }
             />
 
@@ -324,7 +328,7 @@ export default function CreateAccountPage() {
               placeholder="Nome fantasia"
               value={company.alias}
               onChangeText={v =>
-                setCompany({ ...company, alias: v })
+                setCompany({ ...company, alias: uppercaseText(v) })
               }
             />
 
