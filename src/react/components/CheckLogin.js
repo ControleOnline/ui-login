@@ -10,6 +10,7 @@ const CheckLogin = ({}) => {
   const authActions = authStore.actions;
   const {isLogged, sessionChecked} = authGetters;
   const [currentRoute, setCurrentRoute] = useState(null);
+  const currentRouteName = currentRoute?.name || '';
 
   const getPostLoginRoute = useCallback(() => {
     const routeNames = navigation?.getState?.()?.routeNames || [];
@@ -31,27 +32,48 @@ const CheckLogin = ({}) => {
   useFocusEffect(
     useCallback(() => {
       if (!navigation) return;
-      setCurrentRoute(navigation.getCurrentRoute()?.name);
+      setCurrentRoute(navigation.getCurrentRoute());
     }, [navigation]),
   );
 
   useFocusEffect(
     useCallback(() => {
-      if (!sessionChecked || !currentRoute) return;
-      if (!isLogged && !isPublicRoute(currentRoute))
+      if (!sessionChecked || !currentRouteName) return;
+      if (!isLogged && !isPublicRoute(currentRouteName))
         navigation.reset({
           index: 0,
-          routes: [{name: 'SignInPage'}],
+          routes: [
+            {
+              name: 'SignInPage',
+              params: {
+                redirectRoute: currentRouteName,
+                redirectParams: currentRoute?.params || {},
+              },
+            },
+          ],
         });
-      else if (isLogged && currentRoute == 'SignInPage') {
-        const postLoginRoute = getPostLoginRoute();
+      else if (isLogged && currentRouteName == 'SignInPage') {
+        const postLoginRoute =
+          currentRoute?.params?.redirectRoute || getPostLoginRoute();
         if (!postLoginRoute) return;
         navigation.reset({
           index: 0,
-          routes: [{name: postLoginRoute}],
+          routes: [
+            {
+              name: postLoginRoute,
+              params: currentRoute?.params?.redirectParams || undefined,
+            },
+          ],
         });
       }
-    }, [isLogged, currentRoute, getPostLoginRoute, sessionChecked]),
+    }, [
+      currentRoute,
+      currentRouteName,
+      getPostLoginRoute,
+      isLogged,
+      navigation,
+      sessionChecked,
+    ]),
   );
 
   return null;

@@ -9,6 +9,8 @@ describe('ui-login public routes', () => {
   it('keeps the reset password page public without authentication', () => {
     expect(PUBLIC_ROUTES.has('ResetPasswordPage')).toBe(true)
     expect(isPublicRoute('ResetPasswordPage')).toBe(true)
+    expect(isPublicRoute('ShopIndex')).toBe(true)
+    expect(isPublicRoute('ShopProductPage')).toBe(true)
     expect(isPublicRoute('HomePage')).toBe(false)
   })
 })

@@ -17,8 +17,9 @@ const resolveApiErrorMessage = payload =>
   payload?.error ||
   payload?.['hydra:title'] ||
   'Erro ao criar conta';
+const showAlert = message => globalThis.alert?.(message);
 
-export default function CreateAccountPage() {
+export default function CreateAccountPage({navigation, route}) {
 
   const isManager = env.APP_TYPE === 'MANAGER';
   const isShop = env.APP_TYPE === 'SHOP';
@@ -87,7 +88,7 @@ export default function CreateAccountPage() {
     const error = validateForm();
 
     if (error) {
-      alert(error);
+      showAlert(error);
       return;
     }
 
@@ -141,11 +142,16 @@ export default function CreateAccountPage() {
       if (!response.ok)
         throw new Error(resolveApiErrorMessage(json));
 
-      alert('Conta criada com sucesso!');
+      showAlert('Conta criada com sucesso!');
+
+      navigation?.navigate?.('SignInPage', {
+        redirectRoute: route?.params?.redirectRoute,
+        redirectParams: route?.params?.redirectParams,
+      });
 
     } catch (e) {
 
-      alert(e.message);
+      showAlert(e.message);
 
     } finally {
 

@@ -2,7 +2,7 @@
 import { Text, TextInput, TouchableOpacity, View, ActivityIndicator, KeyboardAvoidingView, Platform, StatusBar, Image, ImageBackground, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Animatable from 'react-native-animatable';
-import { useFocusEffect } from '@react-navigation/native';
+import {useFocusEffect, useRoute} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Feather';
 import { useStore } from '@store';
 import { api } from '@controleonline/ui-common/src/api';
@@ -13,7 +13,12 @@ import {resolveCompanyGoogleOauthClientId} from '@controleonline/ui-common/src/u
 import { colors } from '@controleonline/../../src/styles/colors';
 import styles from './index.styles';
 
-const getPostLoginRoute = navigation => {
+const getPostLoginRoute = (navigation, route) => {
+  const redirectRoute = route?.params?.redirectRoute;
+  if (redirectRoute && redirectRoute !== 'SignInPage') {
+    return redirectRoute;
+  }
+
   const routeNames = navigation?.getState?.()?.routeNames || [];
   if (routeNames.includes('HomePage')) return 'HomePage';
   if (routeNames.includes('CrmIndex')) return 'CrmIndex';
@@ -149,6 +154,7 @@ const resolveGoogleOauthErrorMessage = error => {
 };
 
 export default function SignIn({ navigation }) {
+  const route = useRoute();
   const {showSuccess, showError} = useMessage();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -205,15 +211,20 @@ export default function SignIn({ navigation }) {
   useFocusEffect(
     useCallback(() => {
       if (actions.isLogged()) {
-        const postLoginRoute = getPostLoginRoute(navigation);
+        const postLoginRoute = getPostLoginRoute(navigation, route);
         if (postLoginRoute) {
           navigation.reset({
             index: 0,
-            routes: [{name: postLoginRoute}],
+            routes: [
+              {
+                name: postLoginRoute,
+                params: route?.params?.redirectParams || undefined,
+              },
+            ],
           });
         }
       }
-    }, [actions, navigation]),
+    }, [actions, navigation, route]),
   );
 
   const validateForm = () => {
@@ -230,11 +241,16 @@ export default function SignIn({ navigation }) {
     setErrors({});
     try {
       await actions.signIn({ username, password });
-      const postLoginRoute = getPostLoginRoute(navigation);
+      const postLoginRoute = getPostLoginRoute(navigation, route);
       if (postLoginRoute) {
         navigation.reset({
           index: 0,
-          routes: [{name: postLoginRoute}],
+          routes: [
+            {
+              name: postLoginRoute,
+              params: route?.params?.redirectParams || undefined,
+            },
+          ],
         });
       }
     } catch (error) {
@@ -257,11 +273,16 @@ export default function SignIn({ navigation }) {
       const accessToken = await requestGoogleAccessToken(googleClientId);
       await actions.gSignIn({access_token: accessToken});
 
-      const postLoginRoute = getPostLoginRoute(navigation);
+      const postLoginRoute = getPostLoginRoute(navigation, route);
       if (postLoginRoute) {
         navigation.reset({
           index: 0,
-          routes: [{name: postLoginRoute}],
+          routes: [
+            {
+              name: postLoginRoute,
+              params: route?.params?.redirectParams || undefined,
+            },
+          ],
         });
       }
     } catch (error) {
@@ -412,7 +433,12 @@ export default function SignIn({ navigation }) {
 
             <TouchableOpacity
               style={styles.createAccountButton}
-              onPress={() => navigation.navigate('CreateAccount')}>
+              onPress={() =>
+                navigation.navigate('CreateAccount', {
+                  redirectRoute: route?.params?.redirectRoute,
+                  redirectParams: route?.params?.redirectParams,
+                })
+              }>
               <Text style={styles.createAccountText}>
                 {global.t?.t('auth', 'label', 'createAccount') || 'Criar conta'}
               </Text>
