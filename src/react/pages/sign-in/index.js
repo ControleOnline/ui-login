@@ -192,6 +192,7 @@ export default function SignIn({ navigation }) {
 
   const fallbackLogo = require('../../../../../../../src/assets/logo.png');
   const logoUrl = buildAssetUrl(brandCompany?.logo);
+
   const backgroundUrl = buildAssetUrl(
     brandCompany?.theme?.background || brandCompany?.background,
   );
