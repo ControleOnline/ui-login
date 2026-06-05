@@ -6,7 +6,6 @@ export const PUBLIC_ROUTES = new Set([
   'ResetPasswordPage',
   'ShopIndex',
   'ShopFranchiseLocatorPage',
-  'ShopLoyaltyPage',
   'ShopSearchPage',
   'ShopCategoryPage',
   'ShopProductPage',

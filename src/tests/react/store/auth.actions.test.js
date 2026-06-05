@@ -46,7 +46,7 @@ describe('auth restoreSession', () => {
 
     await actions.restoreSession({commit})
 
-    expect(api.fetch).toHaveBeenCalledWith('people/15/status', {})
+    expect(api.fetch).toHaveBeenCalledWith('people/15', {})
     expect(global.localStorage.removeItem).toHaveBeenCalledWith('session')
     expect(global.localStorage.getItem('device')).toBe(
       JSON.stringify({id: 'device-1'}),
@@ -86,7 +86,7 @@ describe('auth restoreSession', () => {
     )
   })
 
-  it('falls back to people details when the status endpoint returns 404', async () => {
+  it('restores the session using people details endpoint', async () => {
     const session = {
       id: 8,
       people: 33,
@@ -98,17 +98,15 @@ describe('auth restoreSession', () => {
       session: JSON.stringify(session),
     })
 
-    api.fetch
-      .mockRejectedValueOnce({status: 404})
-      .mockResolvedValueOnce({id: 33, enable: true})
+    api.fetch.mockResolvedValueOnce({id: 33, enable: true})
 
     const commit = jest.fn()
 
     const restored = await actions.restoreSession({commit})
 
     expect(restored).toEqual(session)
-    expect(api.fetch).toHaveBeenNthCalledWith(1, 'people/33/status', {})
-    expect(api.fetch).toHaveBeenNthCalledWith(2, 'people/33', {})
+    expect(api.fetch).toHaveBeenCalledTimes(1)
+    expect(api.fetch).toHaveBeenCalledWith('people/33', {})
     expect(commit).toHaveBeenCalledWith(types.LOGIN_SET_USER, session)
     expect(commit).toHaveBeenCalledWith(types.LOGIN_SET_IS_LOGGED, true)
   })

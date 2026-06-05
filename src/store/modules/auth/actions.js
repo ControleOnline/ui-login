@@ -20,23 +20,10 @@ const parseStoredSession = () => {
   }
 };
 
-const isNotFoundError = error =>
-  Number(error?.status || error?.code) === 404;
-
 const normalizeStatusResponse = response =>
   response?.response?.data ?? response?.data ?? response ?? null;
 
-const fetchPeopleStatus = async peopleId => {
-  try {
-    return await api.fetch(`people/${peopleId}/status`, {});
-  } catch (error) {
-    if (!isNotFoundError(error)) {
-      throw error;
-    }
-
-    return api.fetch(`people/${peopleId}`, {});
-  }
-};
+const fetchPeopleStatus = peopleId => api.fetch(`people/${peopleId}`, {});
 
 export const signIn = ({ commit }, values) => {
   commit(types.LOGIN_SET_ERROR, "");

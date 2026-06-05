@@ -39,6 +39,26 @@ const getPostLoginRoute = (navigation, route) => {
   return routeNames.find(name => name !== 'SignInPage') || null;
 };
 
+const normalizeRedirectParams = redirectParams => {
+  if (!redirectParams) {
+    return undefined;
+  }
+
+  if (typeof redirectParams === 'string') {
+    try {
+      const parsedParams = JSON.parse(redirectParams);
+
+      return parsedParams && typeof parsedParams === 'object'
+        ? parsedParams
+        : undefined;
+    } catch {
+      return undefined;
+    }
+  }
+
+  return typeof redirectParams === 'object' ? redirectParams : undefined;
+};
+
 const GOOGLE_OAUTH_SCRIPT_ID = 'google-oauth-client-script';
 const GOOGLE_OAUTH_SCOPE = 'openid email profile';
 
@@ -181,6 +201,10 @@ export default function SignIn({ navigation }) {
   const [recoveryLogin, setRecoveryLogin] = useState('');
   const authStore = useStore('auth');
   const actions = authStore.actions;
+  const redirectParams = useMemo(
+    () => normalizeRedirectParams(route?.params?.redirectParams),
+    [route?.params?.redirectParams],
+  );
   const peopleStore = useStore('people');
   const peopleGetters = peopleStore.getters;
   const {defaultCompany, currentCompany} = peopleGetters;
@@ -232,7 +256,7 @@ export default function SignIn({ navigation }) {
             routes: [
               {
                 name: postLoginRoute,
-                params: route?.params?.redirectParams || undefined,
+                params: redirectParams,
               },
             ],
           });
@@ -262,7 +286,7 @@ export default function SignIn({ navigation }) {
           routes: [
             {
               name: postLoginRoute,
-              params: route?.params?.redirectParams || undefined,
+              params: redirectParams,
             },
           ],
         });
@@ -294,7 +318,7 @@ export default function SignIn({ navigation }) {
           routes: [
             {
               name: postLoginRoute,
-              params: route?.params?.redirectParams || undefined,
+              params: redirectParams,
             },
           ],
         });
@@ -450,7 +474,7 @@ export default function SignIn({ navigation }) {
               onPress={() =>
                 navigation.navigate('CreateAccount', {
                   redirectRoute: route?.params?.redirectRoute,
-                  redirectParams: route?.params?.redirectParams,
+                  redirectParams,
                 })
               }>
               <Text style={styles.createAccountText}>
