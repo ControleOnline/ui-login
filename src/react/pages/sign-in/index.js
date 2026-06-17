@@ -547,3 +547,4 @@ export default function SignIn({ navigation }) {
 
   return content;
 }
+// TODO(store-first): quando este arquivo for mexido, mover a leitura para stores, remover api.fetch e evitar repassar dados em objetos quando o store ja resolver isso.
