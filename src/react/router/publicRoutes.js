@@ -10,6 +10,12 @@ export const PUBLIC_ROUTES = new Set([
   'ShopCategoryPage',
   'ShopProductPage',
   'ShopCartPage',
+  'ShopCheckoutPage',
+  'ShopOrdersPage',
+  'ShopOrderDetailsPage',
+  'ShopProfilePage',
+  'ShopCardsPage',
+  'ShopLoyaltyPage',
   'ShopDownloadPage',
 ])
 
