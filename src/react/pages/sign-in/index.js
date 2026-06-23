@@ -365,6 +365,10 @@ export default function SignIn({ navigation }) {
     }
   };
 
+  const closeForgotPasswordModal = () => {
+    setForgotPasswordVisible(false);
+  };
+
   const content = (
     <SafeAreaView
       style={[styles.container, backgroundUrl ? styles.containerTransparent : null]}>
@@ -494,12 +498,22 @@ export default function SignIn({ navigation }) {
               visible={forgotPasswordVisible}
               transparent
               animationType="fade"
-              onRequestClose={() => setForgotPasswordVisible(false)}>
+              onRequestClose={closeForgotPasswordModal}>
               <View style={styles.modalOverlay}>
                 <View style={styles.recoveryModalContent}>
-                  <Text style={styles.recoveryModalTitle}>
-                    {global.t?.t('auth', 'label', 'recoverPassword') || 'Recuperar senha'}
-                  </Text>
+                  <View style={styles.recoveryModalHeader}>
+                    <Text style={styles.recoveryModalTitle}>
+                      {global.t?.t('auth', 'label', 'recoverPassword') || 'Recuperar senha'}
+                    </Text>
+
+                    <TouchableOpacity
+                      style={styles.recoveryModalCloseButton}
+                      onPress={closeForgotPasswordModal}
+                      accessibilityRole="button"
+                      accessibilityLabel="Fechar recuperar senha">
+                      <Icon name="x" size={22} color="#64748B" />
+                    </TouchableOpacity>
+                  </View>
 
                   <TextInput
                     placeholder={global.t?.t('auth', 'label', 'E-mail') || 'E-mail'}

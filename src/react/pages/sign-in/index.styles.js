@@ -184,12 +184,27 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 20,
   },
+  recoveryModalHeader: {
+    minHeight: 36,
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
   recoveryModalTitle: {
     fontSize: 18,
     fontWeight: '700',
     color: '#0F172A',
-    marginBottom: 16,
     textAlign: 'center',
+    paddingHorizontal: 40,
+  },
+  recoveryModalCloseButton: {
+    position: 'absolute',
+    right: -8,
+    top: -6,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   recoveryInput: {
     borderWidth: 1,
