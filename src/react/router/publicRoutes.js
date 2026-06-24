@@ -3,6 +3,7 @@ import {env} from '@env'
 export const PUBLIC_ROUTES = new Set([
   'SignInPage',
   'CreateAccount',
+  'ConfirmAccountPage',
   'ResetPasswordPage',
   'ShopIndex',
   'ShopFranchiseLocatorPage',

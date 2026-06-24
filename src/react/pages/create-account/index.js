@@ -8,6 +8,7 @@ import {
   formatDisplayUppercase,
   uppercaseText,
 } from '@controleonline/ui-common/src/react/utils/entityDisplay';
+import {useMessage} from '@controleonline/ui-common/src/react/components/MessageService';
 import Formatter from '@controleonline/ui-common/src/utils/formatter';
 import styles from './index.styles';
 
@@ -17,9 +18,9 @@ const resolveApiErrorMessage = payload =>
   payload?.error ||
   payload?.['hydra:title'] ||
   'Erro ao criar conta';
-const showAlert = message => globalThis.alert?.(message);
 
 export default function CreateAccountPage({navigation, route}) {
+  const {showError, showSuccess} = useMessage();
 
   const isManager = env.APP_TYPE === 'MANAGER';
   const isShop = env.APP_TYPE === 'SHOP';
@@ -88,7 +89,7 @@ export default function CreateAccountPage({navigation, route}) {
     const error = validateForm();
 
     if (error) {
-      showAlert(error);
+      showError(error);
       return;
     }
 
@@ -142,16 +143,21 @@ export default function CreateAccountPage({navigation, route}) {
       if (!response.ok)
         throw new Error(resolveApiErrorMessage(json));
 
-      showAlert('Conta criada com sucesso!');
+      showSuccess(
+        json?.message ||
+          'Cadastro criado com sucesso. Confira seu e-mail para ativar a conta.',
+      );
 
-      navigation?.navigate?.('SignInPage', {
-        redirectRoute: route?.params?.redirectRoute,
-        redirectParams: route?.params?.redirectParams,
-      });
+      setTimeout(() => {
+        navigation?.navigate?.('SignInPage', {
+          redirectRoute: route?.params?.redirectRoute,
+          redirectParams: route?.params?.redirectParams,
+        });
+      }, 1200);
 
     } catch (e) {
 
-      showAlert(e.message);
+      showError(e.message);
 
     } finally {
 

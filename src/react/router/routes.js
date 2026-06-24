@@ -1,5 +1,6 @@
 import SignInPage from "@controleonline/ui-login/src/react/pages/sign-in";
 import CreateAccount from "@controleonline/ui-login/src/react/pages/create-account";
+import ConfirmAccountPage from "@controleonline/ui-login/src/react/pages/confirm-account";
 import ResetPasswordPage from "@controleonline/ui-login/src/react/pages/reset-password";
 const loginRoutes = [
   {
@@ -11,6 +12,12 @@ const loginRoutes = [
   {
     name: "CreateAccount",
     component: CreateAccount,
+    options: { headerShown: false, showBottomToolBar: false },
+  },
+  {
+    name: "ConfirmAccountPage",
+    path: "confirm-account",
+    component: ConfirmAccountPage,
     options: { headerShown: false, showBottomToolBar: false },
   },
   {

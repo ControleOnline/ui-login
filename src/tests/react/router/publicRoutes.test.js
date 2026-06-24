@@ -1,5 +1,11 @@
 const {describe, expect, it} = global
 
+jest.mock('@env', () => ({
+  env: {
+    APP_TYPE: 'SHOP',
+  },
+}))
+
 const {
   PUBLIC_ROUTES,
   isPublicRoute,
@@ -7,6 +13,8 @@ const {
 
 describe('ui-login public routes', () => {
   it('keeps shop screens renderable without authentication', () => {
+    expect(PUBLIC_ROUTES.has('ConfirmAccountPage')).toBe(true)
+    expect(isPublicRoute('ConfirmAccountPage')).toBe(true)
     expect(PUBLIC_ROUTES.has('ResetPasswordPage')).toBe(true)
     expect(isPublicRoute('ResetPasswordPage')).toBe(true)
     expect(isPublicRoute('ShopIndex')).toBe(true)
