@@ -3,14 +3,14 @@ import { Text, View, TextInput, TouchableOpacity, ActivityIndicator, ScrollView 
 
 import QRCode from 'react-native-qrcode-svg';
 import { env } from '@env';
-import { colors } from '@controleonline/../../src/styles/colors';
 import {
   formatDisplayUppercase,
   uppercaseText,
 } from '@controleonline/ui-common/src/react/utils/entityDisplay';
+import {useStore} from '@store';
 import {useMessage} from '@controleonline/ui-common/src/react/components/MessageService';
 import Formatter from '@controleonline/ui-common/src/utils/formatter';
-import styles from './index.styles';
+import {createStyles, resolveSignInTheme} from './index.styles';
 
 const resolveApiErrorMessage = payload =>
   payload?.['hydra:description'] ||
@@ -21,6 +21,11 @@ const resolveApiErrorMessage = payload =>
 
 export default function CreateAccountPage({navigation, route}) {
   const {showError, showSuccess} = useMessage();
+  const themeStore = useStore('theme');
+  const themeGetters = themeStore?.getters || {};
+  const {colors: themeColors} = themeGetters;
+  const theme = useMemo(() => resolveSignInTheme(themeColors), [themeColors]);
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   const isManager = env.APP_TYPE === 'MANAGER';
   const isShop = env.APP_TYPE === 'SHOP';
@@ -378,7 +383,7 @@ export default function CreateAccountPage({navigation, route}) {
         >
 
           {loading
-            ? <ActivityIndicator color="#fff" />
+            ? <ActivityIndicator color={theme.buttonText} />
             : <Text style={styles.buttonText}>Criar conta</Text>
           }
 

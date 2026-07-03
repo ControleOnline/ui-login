@@ -1,106 +1,107 @@
-import { StyleSheet } from 'react-native';
-import { colors } from '@controleonline/../../src/styles/colors';
+import {StyleSheet} from 'react-native';
+import {resolveSignInTheme} from '../sign-in/index.styles';
 
-const styles = StyleSheet.create({
+export const createStyles = (theme = resolveSignInTheme()) =>
+  StyleSheet.create({
+    container: {
+      padding: 24,
+    },
 
-  container: {
-    padding: 24,
-  },
+    center: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 24,
+    },
 
-  center: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 24,
-  },
+    title: {
+      fontSize: 28,
+      fontWeight: '700',
+      marginBottom: 24,
+    },
 
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    marginBottom: 24,
-  },
+    subtitle: {
+      textAlign: 'center',
+      marginBottom: 30,
+    },
 
-  subtitle: {
-    textAlign: 'center',
-    marginBottom: 30,
-  },
+    section: {
+      fontSize: 18,
+      fontWeight: '600',
+      marginTop: 20,
+      marginBottom: 10,
+    },
 
-  section: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginTop: 20,
-    marginBottom: 10,
-  },
+    input: {
+      backgroundColor: theme.inputBackground,
+      borderRadius: 10,
+      paddingHorizontal: 16,
+      height: 50,
+      marginBottom: 12,
+    },
 
-  input: {
-    backgroundColor: '#F1F5F9',
-    borderRadius: 10,
-    paddingHorizontal: 16,
-    height: 50,
-    marginBottom: 12,
-  },
+    typeSelector: {
+      flexDirection: 'row',
+      marginBottom: 20,
+    },
 
-  typeSelector: {
-    flexDirection: 'row',
-    marginBottom: 20,
-  },
+    typeButton: {
+      flex: 1,
+      padding: 12,
+      backgroundColor: theme.inputBorder,
+      alignItems: 'center',
+      borderRadius: 8,
+      marginRight: 8,
+    },
 
-  typeButton: {
-    flex: 1,
-    padding: 12,
-    backgroundColor: '#E2E8F0',
-    alignItems: 'center',
-    borderRadius: 8,
-    marginRight: 8,
-  },
+    typeButtonActive: {
+      backgroundColor: theme.buttonBackground,
+    },
 
-  typeButtonActive: {
-    backgroundColor: colors.primary,
-  },
+    typeText: {
+      color: theme.buttonDisabledText,
+      fontWeight: '600',
+    },
 
-  typeText: {
-    color: '#000',
-    fontWeight: '600',
-  },
+    phoneRow: {
+      flexDirection: 'row',
+    },
 
-  phoneRow: {
-    flexDirection: 'row',
-  },
+    ddi: {
+      width: 72,
+      marginRight: 8,
+    },
 
-  ddi: {
-    width: 72,
-    marginRight: 8,
-  },
+    ddd: {
+      width: 76,
+      marginRight: 8,
+    },
 
-  ddd: {
-    width: 76,
-    marginRight: 8,
-  },
+    phone: {
+      flex: 1,
+    },
 
-  phone: {
-    flex: 1,
-  },
+    button: {
+      marginTop: 30,
+      backgroundColor: theme.buttonBackground,
+      height: 54,
+      borderRadius: 10,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
 
-  button: {
-    marginTop: 30,
-    backgroundColor: colors.primary,
-    height: 54,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+    buttonText: {
+      color: theme.buttonText,
+      fontSize: 16,
+      fontWeight: '700',
+    },
 
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '700',
-  },
+    qrText: {
+      marginTop: 20,
+      textAlign: 'center',
+    },
+  });
 
-  qrText: {
-    marginTop: 20,
-    textAlign: 'center',
-  },
-
-});
+const styles = createStyles(resolveSignInTheme());
 
 export default styles;

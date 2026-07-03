@@ -23,8 +23,7 @@ import {useMessage} from '@controleonline/ui-common/src/react/components/Message
 import {buildAssetUrl} from '@controleonline/../../src/styles/branding';
 import {resolveCompanyGoogleOauthClientId} from '@controleonline/ui-common/src/utils/oauth';
 
-import { colors } from '@controleonline/../../src/styles/colors';
-import styles from './index.styles';
+import {createStyles, resolveSignInTheme} from './index.styles';
 
 const getPostLoginRoute = (navigation, route) => {
   const redirectRoute = route?.params?.redirectRoute;
@@ -200,6 +199,7 @@ export default function SignIn({ navigation }) {
   const [forgotPasswordVisible, setForgotPasswordVisible] = useState(false);
   const [recoveryLogin, setRecoveryLogin] = useState('');
   const authStore = useStore('auth');
+  const themeStore = useStore('theme');
   const actions = authStore.actions;
   const redirectParams = useMemo(
     () => normalizeRedirectParams(route?.params?.redirectParams),
@@ -207,7 +207,11 @@ export default function SignIn({ navigation }) {
   );
   const peopleStore = useStore('people');
   const peopleGetters = peopleStore.getters;
+  const themeGetters = themeStore?.getters || {};
   const {defaultCompany, currentCompany} = peopleGetters;
+  const {colors: themeColors} = themeGetters;
+  const theme = useMemo(() => resolveSignInTheme(themeColors), [themeColors]);
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   const brandCompany = useMemo(() => {
     if (defaultCompany?.id) {
@@ -372,7 +376,7 @@ export default function SignIn({ navigation }) {
   const content = (
     <SafeAreaView
       style={[styles.container, backgroundUrl ? styles.containerTransparent : null]}>
-      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
+      <StatusBar barStyle="dark-content" backgroundColor={theme.background} />
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -399,10 +403,10 @@ export default function SignIn({ navigation }) {
 
           <Animatable.View animation="fadeInUp" delay={600} style={styles.form}>
             <View style={[styles.inputContainer, errors.username && styles.inputError]}>
-              <Icon name="mail" size={20} color={colors.textSecondary} style={styles.inputIcon} />
+              <Icon name="mail" size={20} color={theme.inputIcon} style={styles.inputIcon} />
               <TextInput
                 placeholder={global.t?.t('auth', 'label', 'Email') || 'Email'}
-                placeholderTextColor="#94A3B8"
+                placeholderTextColor={theme.inputPlaceholderText}
                 style={styles.input}
                 value={username}
                 onChangeText={setUsername}
@@ -412,17 +416,21 @@ export default function SignIn({ navigation }) {
             </View>
 
             <View style={[styles.inputContainer, errors.password && styles.inputError]}>
-              <Icon name="lock" size={20} color={colors.textSecondary} style={styles.inputIcon} />
+              <Icon name="lock" size={20} color={theme.inputIcon} style={styles.inputIcon} />
               <TextInput
                 placeholder={global.t?.t('auth', 'label', 'Senha') || 'Senha'}
-                placeholderTextColor="#94A3B8"
+                placeholderTextColor={theme.inputPlaceholderText}
                 style={styles.input}
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
               />
               <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                <Icon name={showPassword ? 'eye' : 'eye-off'} size={20} color={colors.textSecondary} />
+                <Icon
+                  name={showPassword ? 'eye' : 'eye-off'}
+                  size={20}
+                  color={theme.inputIcon}
+                />
               </TouchableOpacity>
             </View>
 
@@ -431,7 +439,7 @@ export default function SignIn({ navigation }) {
               onPress={handleSignIn}
               disabled={isLoading || isGoogleLoading}>
               {isLoading ? (
-                <ActivityIndicator color={colors.white} />
+                <ActivityIndicator color={theme.buttonText} />
               ) : (
                 <Text style={styles.loginButtonText}>
                   {global.t?.t('auth', 'label', 'Entrar') || 'Entrar'}
@@ -457,7 +465,7 @@ export default function SignIn({ navigation }) {
                   onPress={handleGoogleSignIn}
                   disabled={isLoading || isGoogleLoading}>
                   {isGoogleLoading ? (
-                    <ActivityIndicator color="#0F172A" />
+                    <ActivityIndicator color={theme.buttonTextSecondary} />
                   ) : (
                     <>
                       <View style={styles.googleButtonBadge}>
@@ -511,13 +519,13 @@ export default function SignIn({ navigation }) {
                       onPress={closeForgotPasswordModal}
                       accessibilityRole="button"
                       accessibilityLabel="Fechar recuperar senha">
-                      <Icon name="x" size={22} color="#64748B" />
+                      <Icon name="x" size={22} color={theme.modalCloseIcon} />
                     </TouchableOpacity>
                   </View>
 
                   <TextInput
                     placeholder={global.t?.t('auth', 'label', 'E-mail') || 'E-mail'}
-                    placeholderTextColor="#94A3B8"
+                    placeholderTextColor={theme.inputPlaceholderText}
                     style={styles.recoveryInput}
                     value={recoveryLogin}
                     onChangeText={setRecoveryLogin}
@@ -531,7 +539,7 @@ export default function SignIn({ navigation }) {
                     onPress={handleRecoverPassword}
                     disabled={isRecovering}>
                     {isRecovering ? (
-                      <ActivityIndicator color={colors.white} />
+                      <ActivityIndicator color={theme.buttonText} />
                     ) : (
                       <Text style={styles.loginButtonText}>
                         {global.t?.t('auth', 'label', 'recoverPassword') || 'Recuperar senha'}

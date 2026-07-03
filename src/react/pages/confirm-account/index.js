@@ -15,8 +15,7 @@ import {useStore} from '@store';
 import {api} from '@controleonline/ui-common/src/api';
 import {useMessage} from '@controleonline/ui-common/src/react/components/MessageService';
 import {buildAssetUrl} from '@controleonline/../../src/styles/branding';
-import {colors} from '@controleonline/../../src/styles/colors';
-import signInStyles from '../sign-in/index.styles';
+import {createStyles, resolveSignInTheme} from '../sign-in/index.styles';
 
 const getRouteParam = value => {
   if (Array.isArray(value)) {
@@ -35,8 +34,20 @@ export default function ConfirmAccountPage({navigation, route}) {
   const [logoLoadError, setLogoLoadError] = useState(false);
   const submittedRef = useRef(false);
   const peopleStore = useStore('people');
+  const themeStore = useStore('theme');
   const peopleGetters = peopleStore.getters;
+  const themeGetters = themeStore?.getters || {};
   const {defaultCompany, currentCompany} = peopleGetters;
+  const {colors: themeColors} = themeGetters;
+  const signInTheme = useMemo(
+    () => resolveSignInTheme(themeColors),
+    [themeColors],
+  );
+  const signInStyles = useMemo(
+    () => createStyles(signInTheme),
+    [signInTheme],
+  );
+  const styles = useMemo(() => createPageStyles(signInTheme), [signInTheme]);
 
   const verificationHash = useMemo(
     () => getRouteParam(route?.params?.hash),
@@ -141,7 +152,7 @@ export default function ConfirmAccountPage({navigation, route}) {
         signInStyles.container,
         backgroundUrl ? signInStyles.containerTransparent : null,
       ]}>
-      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
+      <StatusBar barStyle="dark-content" backgroundColor={signInTheme.background} />
 
       <View style={signInStyles.content}>
         <View style={signInStyles.centerBlock}>
@@ -175,7 +186,7 @@ export default function ConfirmAccountPage({navigation, route}) {
 
           <Animatable.View animation="fadeInUp" delay={550} style={styles.panel}>
             {status === 'pending' ? (
-              <ActivityIndicator size="large" color={colors.primary} />
+              <ActivityIndicator size="large" color={signInTheme.loadingSpinner} />
             ) : null}
 
             <Text style={styles.helperText}>
@@ -186,8 +197,10 @@ export default function ConfirmAccountPage({navigation, route}) {
                   : 'Aguarde enquanto validamos o seu link de confirmação.'}
             </Text>
 
-            <TouchableOpacity style={signInStyles.button} onPress={goToSignIn}>
-              <Text style={signInStyles.buttonText}>Ir para o login</Text>
+            <TouchableOpacity
+              style={signInStyles.loginButton}
+              onPress={goToSignIn}>
+              <Text style={signInStyles.loginButtonText}>Ir para o login</Text>
             </TouchableOpacity>
           </Animatable.View>
         </View>
@@ -199,10 +212,9 @@ export default function ConfirmAccountPage({navigation, route}) {
     return (
       <ImageBackground
         source={{uri: backgroundUrl}}
-        style={signInStyles.background}
-        imageStyle={signInStyles.backgroundImage}>
-        <View style={signInStyles.overlay} />
-        {content}
+        style={signInStyles.container}
+        resizeMode="cover">
+        <View style={signInStyles.backgroundOverlay}>{content}</View>
       </ImageBackground>
     );
   }
@@ -210,11 +222,12 @@ export default function ConfirmAccountPage({navigation, route}) {
   return content;
 }
 
-const styles = StyleSheet.create({
+const createPageStyles = theme =>
+  StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: theme.headerText,
     textAlign: 'center',
   },
   panel: {
@@ -223,7 +236,7 @@ const styles = StyleSheet.create({
   helperText: {
     fontSize: 15,
     lineHeight: 22,
-    color: colors.textSecondary,
+    color: theme.textSecondary,
     textAlign: 'center',
   },
-});
+  });

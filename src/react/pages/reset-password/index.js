@@ -19,8 +19,7 @@ import {useStore} from '@store';
 import {api} from '@controleonline/ui-common/src/api';
 import {useMessage} from '@controleonline/ui-common/src/react/components/MessageService';
 import {buildAssetUrl} from '@controleonline/../../src/styles/branding';
-import {colors} from '@controleonline/../../src/styles/colors';
-import signInStyles from '../sign-in/index.styles';
+import {createStyles, resolveSignInTheme} from '../sign-in/index.styles';
 
 const getRouteParam = value => {
   if (Array.isArray(value)) {
@@ -40,8 +39,20 @@ export default function ResetPasswordPage({navigation, route}) {
   const [errors, setErrors] = useState({});
   const [logoLoadError, setLogoLoadError] = useState(false);
   const peopleStore = useStore('people');
+  const themeStore = useStore('theme');
   const peopleGetters = peopleStore.getters;
+  const themeGetters = themeStore?.getters || {};
   const {defaultCompany, currentCompany} = peopleGetters;
+  const {colors: themeColors} = themeGetters;
+  const signInTheme = useMemo(
+    () => resolveSignInTheme(themeColors),
+    [themeColors],
+  );
+  const signInStyles = useMemo(
+    () => createStyles(signInTheme),
+    [signInTheme],
+  );
+  const styles = useMemo(() => createPageStyles(signInTheme), [signInTheme]);
 
   const recoveryHash = useMemo(
     () => getRouteParam(route?.params?.hash),
@@ -141,7 +152,7 @@ export default function ResetPasswordPage({navigation, route}) {
         signInStyles.container,
         backgroundUrl ? signInStyles.containerTransparent : null,
       ]}>
-      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
+      <StatusBar barStyle="dark-content" backgroundColor={signInTheme.background} />
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -188,12 +199,12 @@ export default function ResetPasswordPage({navigation, route}) {
               <Icon
                 name="lock"
                 size={20}
-                color={colors.textSecondary}
+                color={signInTheme.inputIcon}
                 style={signInStyles.inputIcon}
               />
               <TextInput
                 placeholder="Nova senha"
-                placeholderTextColor="#94A3B8"
+                placeholderTextColor={signInTheme.inputPlaceholderText}
                 style={signInStyles.input}
                 value={password}
                 onChangeText={setPassword}
@@ -203,7 +214,7 @@ export default function ResetPasswordPage({navigation, route}) {
                 <Icon
                   name={showPassword ? 'eye' : 'eye-off'}
                   size={20}
-                  color={colors.textSecondary}
+                  color={signInTheme.inputIcon}
                 />
               </TouchableOpacity>
             </View>
@@ -216,12 +227,12 @@ export default function ResetPasswordPage({navigation, route}) {
               <Icon
                 name="shield"
                 size={20}
-                color={colors.textSecondary}
+                color={signInTheme.inputIcon}
                 style={signInStyles.inputIcon}
               />
               <TextInput
                 placeholder="Confirmar nova senha"
-                placeholderTextColor="#94A3B8"
+                placeholderTextColor={signInTheme.inputPlaceholderText}
                 style={signInStyles.input}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
@@ -232,7 +243,7 @@ export default function ResetPasswordPage({navigation, route}) {
                 <Icon
                   name={showConfirmPassword ? 'eye' : 'eye-off'}
                   size={20}
-                  color={colors.textSecondary}
+                  color={signInTheme.inputIcon}
                 />
               </TouchableOpacity>
             </View>
@@ -248,7 +259,7 @@ export default function ResetPasswordPage({navigation, route}) {
               onPress={handleSubmit}
               disabled={isSubmitting || !recoveryHash || !recoveryLost}>
               {isSubmitting ? (
-                <ActivityIndicator color={colors.white} />
+                <ActivityIndicator color={signInTheme.buttonText} />
               ) : (
                 <Text style={signInStyles.loginButtonText}>Salvar nova senha</Text>
               )}
@@ -279,19 +290,20 @@ export default function ResetPasswordPage({navigation, route}) {
   return content;
 }
 
-const styles = StyleSheet.create({
+const createPageStyles = theme =>
+  StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#0F172A',
+    color: theme.headerText,
     textAlign: 'center',
     marginBottom: 10,
   },
   errorText: {
-    color: colors.error,
+    color: theme.error,
     fontSize: 14,
     marginBottom: 12,
     textAlign: 'center',
   },
-});
+  });
 // TODO(store-first): quando este arquivo for mexido, mover a leitura para stores, remover api.fetch e evitar repassar dados em objetos quando o store ja resolver isso.
