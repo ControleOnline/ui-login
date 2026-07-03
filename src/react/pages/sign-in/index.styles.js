@@ -1,48 +1,96 @@
 import {Dimensions, Platform, StyleSheet} from 'react-native';
-import {colors} from '@controleonline/../../src/styles/colors';
-import {
-  resolveThemePalette,
-  withOpacity,
-} from '@controleonline/../../src/styles/branding';
+import {withOpacity} from '@controleonline/../../src/styles/branding';
 
 const {height} = Dimensions.get('window');
 
+const firstThemeValue = (themeColors = {}, keys = []) => {
+  for (const key of keys) {
+    const value = themeColors[key];
+    if (value !== undefined && value !== null && value !== '') {
+      return value;
+    }
+  }
+
+  return undefined;
+};
+
 export const resolveSignInTheme = (themeColors = {}) => {
-  const palette = resolveThemePalette(themeColors, colors);
+  const background = firstThemeValue(themeColors, [
+    'background',
+    'bg-light',
+    'q-bg-light',
+    'bg-headers-light',
+    'q-bg-headers-light',
+  ]);
+  const text = firstThemeValue(themeColors, [
+    'textPrimary',
+    'text',
+    'text-primary',
+    'q-text-primary',
+    'text-headers-light',
+    'q-text-headers-light',
+  ]);
+  const textSecondary = firstThemeValue(themeColors, [
+    'textSecondary',
+    'text-secondary',
+    'q-text-secondary',
+    'text-headers-light',
+    'q-text-headers-light',
+  ]);
+  const primary = firstThemeValue(themeColors, [
+    'primary',
+    'q-primary',
+    'btn-primary',
+    'q-btn-primary',
+    'header-primary',
+    'q-header-primary',
+  ]);
+  const secondary = firstThemeValue(themeColors, [
+    'secondary',
+    'q-secondary',
+  ]);
+  const border = firstThemeValue(themeColors, [
+    'border',
+    'bg-even-light',
+    'q-bg-even-light',
+  ]);
 
   return {
-    ...palette,
-    containerTransparentBackground:
-      themeColors.containerTransparentBackground || 'transparent',
-    overlayBackground:
-      themeColors.overlayBackground || 'rgba(248, 250, 252, 0.45)',
-    inputBackground: themeColors.inputBackground || '#F1F5F9',
-    inputFilledBorder: themeColors.inputFilledBorder || 'transparent',
-    inputErrorBorder: themeColors.inputErrorBorder || '#C10015',
-    inputErrorBackground: themeColors.inputErrorBackground || '#FEF2F2',
-    inputText: themeColors.inputText || '#0F172A',
-    inputPlaceholderText: themeColors.inputPlaceholderText || '#94A3B8',
-    inputIcon: themeColors.inputIcon || '#64748B',
-    buttonBackground: themeColors.buttonBackground || palette.primary,
-    buttonShadow: themeColors.buttonShadow || '#6366F1',
-    buttonText: themeColors.buttonText || '#fff',
-    dividerBackground: themeColors.dividerBackground || '#CBD5E1',
-    dividerText: themeColors.dividerText || '#64748B',
-    buttonBackgroundSecondary:
-      themeColors.buttonBackgroundSecondary || '#FFFFFF',
-    buttonBorderSecondary: themeColors.buttonBorderSecondary || '#CBD5E1',
-    buttonDisabledOpacity: Number(themeColors.buttonDisabledOpacity ?? 0.7),
-    buttonDisabledText: themeColors.buttonDisabledText || '#000',
-    buttonIconSecondary: themeColors.buttonIconSecondary || '#EA4335',
-    buttonTextSecondary: themeColors.buttonTextSecondary || '#0F172A',
-    linkText: themeColors.linkText || palette.primary,
-    modalOverlay: themeColors.modalOverlay || 'rgba(15, 23, 42, 0.45)',
-    modalBackground: themeColors.modalBackground || '#fff',
-    modalHeaderText: themeColors.modalHeaderText || '#0F172A',
-    modalCloseIcon: themeColors.modalCloseIcon || '#64748B',
-    headerText: themeColors.headerText || '#0F172A',
-    loadingSpinner: themeColors.loadingSpinner || palette.primary,
-    inputBorder: themeColors.inputBorder || '#E2E8F0',
+    ...themeColors,
+    background,
+    text,
+    textSecondary,
+    primary,
+    secondary,
+    border,
+    containerTransparentBackground: themeColors.containerTransparentBackground,
+    overlayBackground: themeColors.overlayBackground,
+    inputBackground: themeColors.inputBackground,
+    inputFilledBorder: themeColors.inputFilledBorder,
+    inputErrorBorder: themeColors.inputErrorBorder,
+    inputErrorBackground: themeColors.inputErrorBackground,
+    inputText: themeColors.inputText,
+    inputPlaceholderText: themeColors.inputPlaceholderText,
+    inputIcon: themeColors.inputIcon,
+    buttonBackground: themeColors.buttonBackground,
+    buttonShadow: themeColors.buttonShadow,
+    buttonText: themeColors.buttonText,
+    dividerBackground: themeColors.dividerBackground,
+    dividerText: themeColors.dividerText,
+    buttonBackgroundSecondary: themeColors.buttonBackgroundSecondary,
+    buttonBorderSecondary: themeColors.buttonBorderSecondary,
+    buttonDisabledOpacity: Number(themeColors.buttonDisabledOpacity),
+    buttonDisabledText: themeColors.buttonDisabledText,
+    buttonIconSecondary: themeColors.buttonIconSecondary,
+    buttonTextSecondary: themeColors.buttonTextSecondary,
+    linkText: themeColors.linkText,
+    modalOverlay: themeColors.modalOverlay,
+    modalBackground: themeColors.modalBackground,
+    modalHeaderText: themeColors.modalHeaderText,
+    modalCloseIcon: themeColors.modalCloseIcon,
+    headerText: themeColors.headerText,
+    loadingSpinner: themeColors.loadingSpinner,
+    inputBorder: themeColors.inputBorder,
   };
 };
 

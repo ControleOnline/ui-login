@@ -2,7 +2,6 @@ import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {
   ActivityIndicator,
   Image,
-  ImageBackground,
   StatusBar,
   StyleSheet,
   Text,
@@ -70,11 +69,7 @@ export default function ConfirmAccountPage({navigation, route}) {
     return {};
   }, [currentCompany, defaultCompany]);
 
-  const fallbackLogo = require('../../../../../../../src/assets/logo.png');
   const logoUrl = buildAssetUrl(brandCompany?.logo);
-  const backgroundUrl = buildAssetUrl(
-    brandCompany?.theme?.background || brandCompany?.background,
-  );
 
   useEffect(() => {
     setLogoLoadError(false);
@@ -148,26 +143,25 @@ export default function ConfirmAccountPage({navigation, route}) {
 
   const content = (
     <SafeAreaView
-      style={[
-        signInStyles.container,
-        backgroundUrl ? signInStyles.containerTransparent : null,
-      ]}>
+      style={signInStyles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={signInTheme.background} />
 
       <View style={signInStyles.content}>
         <View style={signInStyles.centerBlock}>
           <View style={signInStyles.header}>
-            <Animatable.View
-              animation="fadeInDown"
-              delay={200}
-              style={signInStyles.logoContainer}>
-              <Image
-                source={logoUrl && !logoLoadError ? {uri: logoUrl} : fallbackLogo}
-                style={signInStyles.logo}
-                resizeMode="contain"
-                onError={() => setLogoLoadError(true)}
-              />
-            </Animatable.View>
+            {logoUrl && !logoLoadError ? (
+              <Animatable.View
+                animation="fadeInDown"
+                delay={200}
+                style={signInStyles.logoContainer}>
+                <Image
+                  source={{uri: logoUrl}}
+                  style={signInStyles.logo}
+                  resizeMode="contain"
+                  onError={() => setLogoLoadError(true)}
+                />
+              </Animatable.View>
+            ) : null}
 
             <Animatable.Text
               animation="fadeIn"
@@ -207,17 +201,6 @@ export default function ConfirmAccountPage({navigation, route}) {
       </View>
     </SafeAreaView>
   );
-
-  if (backgroundUrl) {
-    return (
-      <ImageBackground
-        source={{uri: backgroundUrl}}
-        style={signInStyles.container}
-        resizeMode="cover">
-        <View style={signInStyles.backgroundOverlay}>{content}</View>
-      </ImageBackground>
-    );
-  }
 
   return content;
 }

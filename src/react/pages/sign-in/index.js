@@ -12,7 +12,7 @@
  */
 
 ﻿import React, { useState, useCallback, useEffect, useMemo } from 'react';
-import { Text, TextInput, TouchableOpacity, View, ActivityIndicator, KeyboardAvoidingView, Platform, StatusBar, Image, ImageBackground, Modal } from 'react-native';
+import { Text, TextInput, TouchableOpacity, View, ActivityIndicator, KeyboardAvoidingView, Platform, StatusBar, Image, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Animatable from 'react-native-animatable';
 import {useFocusEffect, useRoute} from '@react-navigation/native';
@@ -231,12 +231,7 @@ export default function SignIn({ navigation }) {
   );
   const canUseGoogleLogin = Platform.OS === 'web' && !!googleClientId;
 
-  const fallbackLogo = require('../../../../../../../src/assets/logo.png');
   const logoUrl = buildAssetUrl(brandCompany?.logo);
-
-  const backgroundUrl = buildAssetUrl(
-    brandCompany?.theme?.background || brandCompany?.background,
-  );
 
   useEffect(() => {
     setLogoLoadError(false);
@@ -375,7 +370,7 @@ export default function SignIn({ navigation }) {
 
   const content = (
     <SafeAreaView
-      style={[styles.container, backgroundUrl ? styles.containerTransparent : null]}>
+      style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={theme.background} />
 
       <KeyboardAvoidingView
@@ -383,18 +378,16 @@ export default function SignIn({ navigation }) {
         style={styles.content}>
         <View style={styles.centerBlock}>
           <View style={styles.header}>
-            <Animatable.View animation="fadeInDown" delay={200} style={styles.logoContainer}>
-              <Image
-                source={
-                  logoUrl && !logoLoadError
-                    ? {uri: logoUrl}
-                    : fallbackLogo
-                }
-                style={styles.logo}
-                resizeMode="contain"
-                onError={() => setLogoLoadError(true)}
-              />
-            </Animatable.View>
+            {logoUrl && !logoLoadError ? (
+              <Animatable.View animation="fadeInDown" delay={200} style={styles.logoContainer}>
+                <Image
+                  source={{uri: logoUrl}}
+                  style={styles.logo}
+                  resizeMode="contain"
+                  onError={() => setLogoLoadError(true)}
+                />
+              </Animatable.View>
+            ) : null}
 
             <Animatable.Text animation="fadeIn" delay={400} style={styles.subtitle}>
               {global.t?.t('auth', 'label', 'Entre com suas credenciais para acessar') || 'Entre com suas credenciais para acessar'}
@@ -555,17 +548,6 @@ export default function SignIn({ navigation }) {
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
-
-  if (backgroundUrl) {
-    return (
-      <ImageBackground
-        source={{uri: backgroundUrl}}
-        style={styles.container}
-        resizeMode="cover">
-        <View style={styles.backgroundOverlay}>{content}</View>
-      </ImageBackground>
-    );
-  }
 
   return content;
 }
