@@ -371,7 +371,7 @@ export default function SignIn({ navigation }) {
   const content = (
     <SafeAreaView
       style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={theme.background} />
+      <StatusBar barStyle="dark-content" backgroundColor={theme.pageBackground} />
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -515,6 +515,11 @@ export default function SignIn({ navigation }) {
                       <Icon name="x" size={22} color={theme.modalCloseIcon} />
                     </TouchableOpacity>
                   </View>
+
+                  <Text style={styles.recoveryModalDescription}>
+                    {global.t?.t('auth', 'message', 'recoverPasswordDescription') ||
+                      'Informe seu e-mail para receber o link de recuperação de senha.'}
+                  </Text>
 
                   <TextInput
                     placeholder={global.t?.t('auth', 'label', 'E-mail') || 'E-mail'}

@@ -3,8 +3,15 @@ import {resolveSignInTheme} from '../sign-in/index.styles';
 
 export const createStyles = (theme = resolveSignInTheme()) =>
   StyleSheet.create({
+    page: {
+      flex: 1,
+      backgroundColor: theme.pageBackground,
+    },
+
     container: {
+      flexGrow: 1,
       padding: 24,
+      backgroundColor: theme.pageBackground,
     },
 
     center: {
@@ -12,17 +19,21 @@ export const createStyles = (theme = resolveSignInTheme()) =>
       alignItems: 'center',
       justifyContent: 'center',
       padding: 24,
+      backgroundColor: theme.pageBackground,
     },
 
     title: {
       fontSize: 28,
       fontWeight: '700',
       marginBottom: 24,
+      color: theme.textPrimary,
+      textAlign: 'center',
     },
 
     subtitle: {
       textAlign: 'center',
       marginBottom: 30,
+      color: theme.textSecondary,
     },
 
     section: {
@@ -30,10 +41,14 @@ export const createStyles = (theme = resolveSignInTheme()) =>
       fontWeight: '600',
       marginTop: 20,
       marginBottom: 10,
+      color: theme.textPrimary,
     },
 
     input: {
       backgroundColor: theme.inputBackground,
+      color: theme.inputText,
+      borderWidth: 1,
+      borderColor: theme.inputFilledBorder,
       borderRadius: 10,
       paddingHorizontal: 16,
       height: 50,
@@ -48,19 +63,30 @@ export const createStyles = (theme = resolveSignInTheme()) =>
     typeButton: {
       flex: 1,
       padding: 12,
-      backgroundColor: theme.inputBorder,
+      backgroundColor: theme.buttonBackgroundSecondary,
+      borderWidth: 1,
+      borderColor: theme.buttonBorderSecondary,
       alignItems: 'center',
       borderRadius: 8,
       marginRight: 8,
     },
 
+    typeButtonLast: {
+      marginRight: 0,
+    },
+
     typeButtonActive: {
       backgroundColor: theme.buttonBackground,
+      borderColor: theme.buttonBackground,
     },
 
     typeText: {
-      color: theme.buttonDisabledText,
+      color: theme.buttonTextSecondary,
       fontWeight: '600',
+    },
+
+    typeTextActive: {
+      color: theme.buttonText,
     },
 
     phoneRow: {
@@ -84,6 +110,8 @@ export const createStyles = (theme = resolveSignInTheme()) =>
     button: {
       marginTop: 30,
       backgroundColor: theme.buttonBackground,
+      borderWidth: 1,
+      borderColor: theme.buttonBackground,
       height: 54,
       borderRadius: 10,
       alignItems: 'center',
@@ -99,6 +127,7 @@ export const createStyles = (theme = resolveSignInTheme()) =>
     qrText: {
       marginTop: 20,
       textAlign: 'center',
+      color: theme.textSecondary,
     },
   });
 

@@ -1,5 +1,13 @@
 import React, { useState, useMemo } from 'react';
-import { Text, View, TextInput, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
+import {
+  Text,
+  View,
+  TextInput,
+  TouchableOpacity,
+  ActivityIndicator,
+  ScrollView,
+  StatusBar,
+} from 'react-native';
 
 import QRCode from 'react-native-qrcode-svg';
 import { env } from '@env';
@@ -10,7 +18,8 @@ import {
 import {useStore} from '@store';
 import {useMessage} from '@controleonline/ui-common/src/react/components/MessageService';
 import Formatter from '@controleonline/ui-common/src/utils/formatter';
-import {createStyles, resolveSignInTheme} from './index.styles';
+import {resolveSignInTheme} from '../sign-in/index.styles';
+import {createStyles} from './index.styles';
 
 const resolveApiErrorMessage = payload =>
   payload?.['hydra:description'] ||
@@ -176,6 +185,7 @@ export default function CreateAccountPage({navigation, route}) {
 
     return (
       <View style={styles.center}>
+        <StatusBar barStyle="dark-content" backgroundColor={theme.pageBackground} />
 
         <Text style={styles.title}>
           Criar conta
@@ -201,7 +211,8 @@ export default function CreateAccountPage({navigation, route}) {
 
     return (
 
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView style={styles.page} contentContainerStyle={styles.container}>
+        <StatusBar barStyle="dark-content" backgroundColor={theme.pageBackground} />
 
         <Text style={styles.title}>
           Criar Conta
@@ -216,7 +227,11 @@ export default function CreateAccountPage({navigation, route}) {
             ]}
             onPress={() => setType('PF')}
           >
-            <Text style={styles.typeText}>
+            <Text
+              style={[
+                styles.typeText,
+                type === 'PF' && styles.typeTextActive,
+              ]}>
               Pessoa Física
             </Text>
           </TouchableOpacity>
@@ -224,11 +239,16 @@ export default function CreateAccountPage({navigation, route}) {
           <TouchableOpacity
             style={[
               styles.typeButton,
+              styles.typeButtonLast,
               type === 'PJ' && styles.typeButtonActive,
             ]}
             onPress={() => setType('PJ')}
           >
-            <Text style={styles.typeText}>
+            <Text
+              style={[
+                styles.typeText,
+                type === 'PJ' && styles.typeTextActive,
+              ]}>
               Pessoa Jurídica
             </Text>
           </TouchableOpacity>
@@ -242,6 +262,7 @@ export default function CreateAccountPage({navigation, route}) {
         <TextInput
           style={styles.input}
           placeholder="CPF"
+          placeholderTextColor={theme.inputPlaceholderText}
           keyboardType="numeric"
           maxLength={11+3} // 11 dígitos + máscara
           value={people.document}
@@ -253,6 +274,7 @@ export default function CreateAccountPage({navigation, route}) {
         <TextInput
           style={styles.input}
           placeholder="Nome completo"
+          placeholderTextColor={theme.inputPlaceholderText}
           value={people.name}
           onChangeText={v => setPeople({ ...people, name: uppercaseText(v) })}
         />
@@ -260,6 +282,7 @@ export default function CreateAccountPage({navigation, route}) {
         <TextInput
           style={styles.input}
           placeholder="Como quer ser chamado?"
+          placeholderTextColor={theme.inputPlaceholderText}
           value={people.alias}
           onChangeText={v => setPeople({ ...people, alias: uppercaseText(v) })}
         />
@@ -267,6 +290,7 @@ export default function CreateAccountPage({navigation, route}) {
         <TextInput
           style={styles.input}
           placeholder="Email"
+          placeholderTextColor={theme.inputPlaceholderText}
           keyboardType="email-address"
           value={people.email}
           onChangeText={v => setPeople({ ...people, email: v })}
@@ -281,6 +305,7 @@ export default function CreateAccountPage({navigation, route}) {
           <TextInput
             style={[styles.input, styles.ddi]}
             placeholder="DDI"
+            placeholderTextColor={theme.inputPlaceholderText}
             keyboardType="numeric"
             maxLength={3}
             value={people.ddi}
@@ -292,6 +317,7 @@ export default function CreateAccountPage({navigation, route}) {
           <TextInput
             style={[styles.input, styles.ddd]}
             placeholder="DDD"
+            placeholderTextColor={theme.inputPlaceholderText}
             keyboardType="numeric"
             maxLength={2}
             value={people.ddd}
@@ -303,6 +329,7 @@ export default function CreateAccountPage({navigation, route}) {
           <TextInput
             style={[styles.input, styles.phone]}
             placeholder="Telefone"
+            placeholderTextColor={theme.inputPlaceholderText}
             keyboardType="numeric"
             value={people.phone}
             onChangeText={v =>
@@ -323,6 +350,7 @@ export default function CreateAccountPage({navigation, route}) {
             <TextInput
               style={styles.input}
               placeholder="CNPJ"
+              placeholderTextColor={theme.inputPlaceholderText}
               keyboardType="numeric"
               maxLength={14+4} // 14 dígitos + máscara
               value={company.document}
@@ -334,6 +362,7 @@ export default function CreateAccountPage({navigation, route}) {
             <TextInput
               style={styles.input}
               placeholder="Nome da empresa"
+              placeholderTextColor={theme.inputPlaceholderText}
               value={company.name}
               onChangeText={v =>
                 setCompany({ ...company, name: uppercaseText(v) })
@@ -343,6 +372,7 @@ export default function CreateAccountPage({navigation, route}) {
             <TextInput
               style={styles.input}
               placeholder="Nome fantasia"
+              placeholderTextColor={theme.inputPlaceholderText}
               value={company.alias}
               onChangeText={v =>
                 setCompany({ ...company, alias: uppercaseText(v) })
@@ -360,6 +390,7 @@ export default function CreateAccountPage({navigation, route}) {
         <TextInput
           style={styles.input}
           placeholder="Usuário"
+          placeholderTextColor={theme.inputPlaceholderText}
           value={people.user}
           onChangeText={v =>
             setPeople({ ...people, user: v })
@@ -369,6 +400,7 @@ export default function CreateAccountPage({navigation, route}) {
         <TextInput
           style={styles.input}
           placeholder="Senha"
+          placeholderTextColor={theme.inputPlaceholderText}
           secureTextEntry
           value={people.password}
           onChangeText={v =>

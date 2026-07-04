@@ -144,7 +144,7 @@ export default function ResetPasswordPage({navigation, route}) {
   const content = (
     <SafeAreaView
       style={signInStyles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={signInTheme.background} />
+      <StatusBar barStyle="dark-content" backgroundColor={signInTheme.pageBackground} />
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -278,12 +278,12 @@ const createPageStyles = theme =>
   title: {
     fontSize: 24,
     fontWeight: '700',
-    color: theme.headerText,
+    color: theme.textPrimary,
     textAlign: 'center',
     marginBottom: 10,
   },
   errorText: {
-    color: theme.inputErrorBorder,
+    color: theme.inputErrorText,
     fontSize: 14,
     marginBottom: 12,
     textAlign: 'center',

@@ -3,72 +3,21 @@ import {withOpacity} from '@controleonline/../../src/styles/branding';
 
 const {height} = Dimensions.get('window');
 
-const firstThemeValue = (themeColors = {}, keys = []) => {
-  for (const key of keys) {
-    const value = themeColors[key];
-    if (value !== undefined && value !== null && value !== '') {
-      return value;
-    }
-  }
-
-  return undefined;
-};
-
 export const resolveSignInTheme = (themeColors = {}) => {
-  const background = firstThemeValue(themeColors, [
-    'background',
-    'bg-light',
-    'q-bg-light',
-    'bg-headers-light',
-    'q-bg-headers-light',
-  ]);
-  const text = firstThemeValue(themeColors, [
-    'textPrimary',
-    'text',
-    'text-primary',
-    'q-text-primary',
-    'text-headers-light',
-    'q-text-headers-light',
-  ]);
-  const textSecondary = firstThemeValue(themeColors, [
-    'textSecondary',
-    'text-secondary',
-    'q-text-secondary',
-    'text-headers-light',
-    'q-text-headers-light',
-  ]);
-  const primary = firstThemeValue(themeColors, [
-    'primary',
-    'q-primary',
-    'btn-primary',
-    'q-btn-primary',
-    'header-primary',
-    'q-header-primary',
-  ]);
-  const secondary = firstThemeValue(themeColors, [
-    'secondary',
-    'q-secondary',
-  ]);
-  const border = firstThemeValue(themeColors, [
-    'border',
-    'bg-even-light',
-    'q-bg-even-light',
-  ]);
-
   return {
     ...themeColors,
-    background,
-    text,
-    textSecondary,
-    primary,
-    secondary,
-    border,
-    containerTransparentBackground: themeColors.containerTransparentBackground,
+    pageBackground: themeColors.pageBackground,
+    textPrimary: themeColors.textPrimary,
+    textSecondary: themeColors.textSecondary,
+    surface: themeColors.surface,
     overlayBackground: themeColors.overlayBackground,
+    containerTransparentBackground: themeColors.containerTransparentBackground,
     inputBackground: themeColors.inputBackground,
+    inputBorder: themeColors.inputBorder,
     inputFilledBorder: themeColors.inputFilledBorder,
     inputErrorBorder: themeColors.inputErrorBorder,
     inputErrorBackground: themeColors.inputErrorBackground,
+    inputErrorText: themeColors.inputErrorText,
     inputText: themeColors.inputText,
     inputPlaceholderText: themeColors.inputPlaceholderText,
     inputIcon: themeColors.inputIcon,
@@ -86,11 +35,11 @@ export const resolveSignInTheme = (themeColors = {}) => {
     linkText: themeColors.linkText,
     modalOverlay: themeColors.modalOverlay,
     modalBackground: themeColors.modalBackground,
+    modalBorder: themeColors.modalBorder,
     modalHeaderText: themeColors.modalHeaderText,
+    modalText: themeColors.modalText,
     modalCloseIcon: themeColors.modalCloseIcon,
-    headerText: themeColors.headerText,
-    loadingSpinner: themeColors.loadingSpinner,
-    inputBorder: themeColors.inputBorder,
+    modalShadow: themeColors.modalShadow,
   };
 };
 
@@ -98,7 +47,7 @@ export const createStyles = (theme = resolveSignInTheme()) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: theme.background,
+      backgroundColor: theme.pageBackground,
     },
     content: {
       flex: 1,
@@ -273,13 +222,29 @@ export const createStyles = (theme = resolveSignInTheme()) =>
       width: '100%',
       maxWidth: 360,
       backgroundColor: theme.modalBackground,
+      borderWidth: 1,
+      borderColor: theme.modalBorder,
       borderRadius: 16,
       padding: 20,
+      ...Platform.select({
+        ios: {
+          shadowColor: theme.modalShadow,
+          shadowOffset: {width: 0, height: 10},
+          shadowOpacity: 0.22,
+          shadowRadius: 18,
+        },
+        android: {
+          elevation: 8,
+        },
+        web: {
+          boxShadow: `0px 14px 28px ${withOpacity(theme.modalShadow, 0.22)}`,
+        },
+      }),
     },
     recoveryModalHeader: {
-      minHeight: 36,
+      minHeight: 32,
       justifyContent: 'center',
-      marginBottom: 16,
+      marginBottom: 12,
     },
     recoveryModalTitle: {
       fontSize: 18,
@@ -288,13 +253,20 @@ export const createStyles = (theme = resolveSignInTheme()) =>
       textAlign: 'center',
       paddingHorizontal: 40,
     },
+    recoveryModalDescription: {
+      fontSize: 14,
+      lineHeight: 20,
+      color: theme.modalText,
+      textAlign: 'center',
+      marginBottom: 16,
+    },
     recoveryModalCloseButton: {
       position: 'absolute',
-      right: -8,
-      top: -6,
-      width: 40,
-      height: 40,
-      borderRadius: 20,
+      right: 0,
+      top: -4,
+      width: 36,
+      height: 36,
+      borderRadius: 18,
       alignItems: 'center',
       justifyContent: 'center',
     },
