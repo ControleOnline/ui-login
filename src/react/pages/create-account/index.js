@@ -11,6 +11,7 @@ import {
 
 import QRCode from 'react-native-qrcode-svg';
 import { env } from '@env';
+import {app_type} from '@appType';
 import {
   formatDisplayUppercase,
   uppercaseText,
