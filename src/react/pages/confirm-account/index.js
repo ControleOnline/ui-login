@@ -1,7 +1,6 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {
   ActivityIndicator,
-  Image,
   StatusBar,
   StyleSheet,
   Text,
@@ -13,7 +12,7 @@ import * as Animatable from 'react-native-animatable';
 import {useStore} from '@store';
 import {api} from '@controleonline/ui-common/src/api';
 import {useMessage} from '@controleonline/ui-common/src/react/components/MessageService';
-import {buildAssetUrl} from '@controleonline/../../src/styles/branding';
+import DefaultFile from '@controleonline/ui-default/src/react/components/files/DefaultFile';
 import {createStyles, resolveSignInTheme} from '../sign-in/index.styles';
 
 const getRouteParam = value => {
@@ -42,10 +41,7 @@ export default function ConfirmAccountPage({navigation, route}) {
     () => resolveSignInTheme(themeColors),
     [themeColors],
   );
-  const signInStyles = useMemo(
-    () => createStyles(signInTheme),
-    [signInTheme],
-  );
+  const signInStyles = useMemo(() => createStyles(signInTheme), [signInTheme]);
   const styles = useMemo(() => createPageStyles(signInTheme), [signInTheme]);
 
   const verificationHash = useMemo(
@@ -69,11 +65,9 @@ export default function ConfirmAccountPage({navigation, route}) {
     return {};
   }, [currentCompany, defaultCompany]);
 
-  const logoUrl = buildAssetUrl(brandCompany?.logo);
-
   useEffect(() => {
     setLogoLoadError(false);
-  }, [logoUrl]);
+  }, [brandCompany?.logo]);
 
   useEffect(() => {
     if (submittedRef.current) {
@@ -142,20 +136,23 @@ export default function ConfirmAccountPage({navigation, route}) {
   };
 
   const content = (
-    <SafeAreaView
-      style={signInStyles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={signInTheme.background} />
+    <SafeAreaView style={signInStyles.container}>
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor={signInTheme.background}
+      />
 
       <View style={signInStyles.content}>
         <View style={signInStyles.centerBlock}>
           <View style={signInStyles.header}>
-            {logoUrl && !logoLoadError ? (
+            {brandCompany?.logo && !logoLoadError ? (
               <Animatable.View
                 animation="fadeInDown"
                 delay={200}
                 style={signInStyles.logoContainer}>
-                <Image
-                  source={{uri: logoUrl}}
+                <DefaultFile
+                  file={brandCompany?.logo}
+                  company={brandCompany}
                   style={signInStyles.logo}
                   resizeMode="contain"
                   onError={() => setLogoLoadError(true)}
@@ -178,9 +175,15 @@ export default function ConfirmAccountPage({navigation, route}) {
             </Animatable.Text>
           </View>
 
-          <Animatable.View animation="fadeInUp" delay={550} style={styles.panel}>
+          <Animatable.View
+            animation="fadeInUp"
+            delay={550}
+            style={styles.panel}>
             {status === 'pending' ? (
-              <ActivityIndicator size="large" color={signInTheme.loadingSpinner} />
+              <ActivityIndicator
+                size="large"
+                color={signInTheme.loadingSpinner}
+              />
             ) : null}
 
             <Text style={styles.helperText}>
@@ -207,19 +210,19 @@ export default function ConfirmAccountPage({navigation, route}) {
 
 const createPageStyles = theme =>
   StyleSheet.create({
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: theme.headerText,
-    textAlign: 'center',
-  },
-  panel: {
-    gap: 18,
-  },
-  helperText: {
-    fontSize: 15,
-    lineHeight: 22,
-    color: theme.textSecondary,
-    textAlign: 'center',
-  },
+    title: {
+      fontSize: 28,
+      fontWeight: '700',
+      color: theme.headerText,
+      textAlign: 'center',
+    },
+    panel: {
+      gap: 18,
+    },
+    helperText: {
+      fontSize: 15,
+      lineHeight: 22,
+      color: theme.textSecondary,
+      textAlign: 'center',
+    },
   });

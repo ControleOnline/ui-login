@@ -21,7 +21,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   StatusBar,
-  Image,
   Modal,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
@@ -31,8 +30,8 @@ import Icon from 'react-native-vector-icons/Feather';
 import {useStore} from '@store';
 import {api} from '@controleonline/ui-common/src/api';
 import {useMessage} from '@controleonline/ui-common/src/react/components/MessageService';
-import {resolveFileImageUrl} from '@controleonline/ui-common/src/react/utils/fileUrl';
 import {resolveCompanyGoogleOauthClientId} from '@controleonline/ui-common/src/utils/oauth';
+import DefaultFile from '@controleonline/ui-default/src/react/components/files/DefaultFile';
 
 import {createStyles, resolveSignInTheme} from './index.styles';
 
@@ -244,22 +243,12 @@ export default function SignIn({navigation}) {
     [currentCompany, defaultCompany],
   );
   const canUseGoogleLogin = Platform.OS === 'web' && !!googleClientId;
-
-  const logoUrl = useMemo(
-    () => resolveFileImageUrl(brandCompany?.logo, {company: brandCompany}),
-    [brandCompany],
-  );
-  const backgroundUrl = useMemo(
-    () =>
-      resolveFileImageUrl(brandCompany?.theme?.background, {
-        company: brandCompany,
-      }),
-    [brandCompany],
-  );
+  const logoFile = brandCompany?.logo;
+  const backgroundFile = brandCompany?.theme?.background;
 
   useEffect(() => {
     setLogoLoadError(false);
-  }, [logoUrl]);
+  }, [logoFile]);
 
   useFocusEffect(
     useCallback(() => {
@@ -419,9 +408,10 @@ export default function SignIn({navigation}) {
 
   const content = (
     <SafeAreaView style={styles.container}>
-      {backgroundUrl ? (
-        <Image
-          source={{uri: backgroundUrl}}
+      {backgroundFile ? (
+        <DefaultFile
+          file={backgroundFile}
+          company={brandCompany}
           style={styles.backgroundImage}
           resizeMode="cover"
         />
@@ -437,13 +427,14 @@ export default function SignIn({navigation}) {
         style={styles.content}>
         <View style={styles.centerBlock}>
           <View style={styles.header}>
-            {logoUrl && !logoLoadError ? (
+            {logoFile && !logoLoadError ? (
               <Animatable.View
                 animation="fadeInDown"
                 delay={200}
                 style={styles.logoContainer}>
-                <Image
-                  source={{uri: logoUrl}}
+                <DefaultFile
+                  file={logoFile}
+                  company={brandCompany}
                   style={styles.logo}
                   resizeMode="contain"
                   onError={() => setLogoLoadError(true)}

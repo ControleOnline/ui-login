@@ -1,7 +1,6 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {
   ActivityIndicator,
-  Image,
   KeyboardAvoidingView,
   Platform,
   StatusBar,
@@ -17,7 +16,7 @@ import Icon from 'react-native-vector-icons/Feather';
 import {useStore} from '@store';
 import {api} from '@controleonline/ui-common/src/api';
 import {useMessage} from '@controleonline/ui-common/src/react/components/MessageService';
-import {buildAssetUrl} from '@controleonline/../../src/styles/branding';
+import DefaultFile from '@controleonline/ui-default/src/react/components/files/DefaultFile';
 import {createStyles, resolveSignInTheme} from '../sign-in/index.styles';
 
 const getRouteParam = value => {
@@ -47,10 +46,7 @@ export default function ResetPasswordPage({navigation, route}) {
     () => resolveSignInTheme(themeColors),
     [themeColors],
   );
-  const signInStyles = useMemo(
-    () => createStyles(signInTheme),
-    [signInTheme],
-  );
+  const signInStyles = useMemo(() => createStyles(signInTheme), [signInTheme]);
   const styles = useMemo(() => createPageStyles(signInTheme), [signInTheme]);
 
   const recoveryHash = useMemo(
@@ -74,18 +70,15 @@ export default function ResetPasswordPage({navigation, route}) {
     return {};
   }, [currentCompany, defaultCompany]);
 
-  const logoUrl = buildAssetUrl(brandCompany?.logo);
-
   useEffect(() => {
     setLogoLoadError(false);
-  }, [logoUrl]);
+  }, [brandCompany?.logo]);
 
   const validateForm = () => {
     const nextErrors = {};
 
     if (!recoveryHash || !recoveryLost) {
-      nextErrors.recovery =
-        'O link de recuperacao esta incompleto ou expirou.';
+      nextErrors.recovery = 'O link de recuperacao esta incompleto ou expirou.';
     }
 
     if (!password.trim()) {
@@ -130,34 +123,37 @@ export default function ResetPasswordPage({navigation, route}) {
         },
       });
 
-      showSuccess('Senha redefinida com sucesso. Voce ja pode entrar novamente.');
+      showSuccess(
+        'Senha redefinida com sucesso. Voce ja pode entrar novamente.',
+      );
       setTimeout(goToSignIn, 1200);
     } catch (error) {
-      showError(
-        error?.message || 'Nao foi possivel redefinir a senha agora.',
-      );
+      showError(error?.message || 'Nao foi possivel redefinir a senha agora.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const content = (
-    <SafeAreaView
-      style={signInStyles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={signInTheme.pageBackground} />
+    <SafeAreaView style={signInStyles.container}>
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor={signInTheme.pageBackground}
+      />
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={signInStyles.content}>
         <View style={signInStyles.centerBlock}>
           <View style={signInStyles.header}>
-            {logoUrl && !logoLoadError ? (
+            {brandCompany?.logo && !logoLoadError ? (
               <Animatable.View
                 animation="fadeInDown"
                 delay={200}
                 style={signInStyles.logoContainer}>
-                <Image
-                  source={{uri: logoUrl}}
+                <DefaultFile
+                  file={brandCompany?.logo}
+                  company={brandCompany}
                   style={signInStyles.logo}
                   resizeMode="contain"
                   onError={() => setLogoLoadError(true)}
@@ -176,11 +172,15 @@ export default function ResetPasswordPage({navigation, route}) {
               animation="fadeIn"
               delay={450}
               style={signInStyles.subtitle}>
-              Use o link temporario enviado por e-mail para concluir a recuperacao.
+              Use o link temporario enviado por e-mail para concluir a
+              recuperacao.
             </Animatable.Text>
           </View>
 
-          <Animatable.View animation="fadeInUp" delay={550} style={signInStyles.form}>
+          <Animatable.View
+            animation="fadeInUp"
+            delay={550}
+            style={signInStyles.form}>
             {errors.recovery ? (
               <Text style={styles.errorText}>{errors.recovery}</Text>
             ) : null}
@@ -255,14 +255,18 @@ export default function ResetPasswordPage({navigation, route}) {
               {isSubmitting ? (
                 <ActivityIndicator color={signInTheme.buttonText} />
               ) : (
-                <Text style={signInStyles.loginButtonText}>Salvar nova senha</Text>
+                <Text style={signInStyles.loginButtonText}>
+                  Salvar nova senha
+                </Text>
               )}
             </TouchableOpacity>
 
             <TouchableOpacity
               style={signInStyles.forgotPasswordButton}
               onPress={goToSignIn}>
-              <Text style={signInStyles.forgotPasswordText}>Voltar para o login</Text>
+              <Text style={signInStyles.forgotPasswordText}>
+                Voltar para o login
+              </Text>
             </TouchableOpacity>
           </Animatable.View>
         </View>
@@ -275,18 +279,18 @@ export default function ResetPasswordPage({navigation, route}) {
 
 const createPageStyles = theme =>
   StyleSheet.create({
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: theme.textPrimary,
-    textAlign: 'center',
-    marginBottom: 10,
-  },
-  errorText: {
-    color: theme.inputErrorText,
-    fontSize: 14,
-    marginBottom: 12,
-    textAlign: 'center',
-  },
+    title: {
+      fontSize: 24,
+      fontWeight: '700',
+      color: theme.textPrimary,
+      textAlign: 'center',
+      marginBottom: 10,
+    },
+    errorText: {
+      color: theme.inputErrorText,
+      fontSize: 14,
+      marginBottom: 12,
+      textAlign: 'center',
+    },
   });
 // TODO(store-first): quando este arquivo for mexido, mover a leitura para stores, remover api.fetch e evitar repassar dados em objetos quando o store ja resolver isso.
