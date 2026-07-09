@@ -1,4 +1,5 @@
 import {env} from '@env'
+import {app_type} from '@appType';
 
 export const PUBLIC_ROUTES = new Set([
   'SignInPage',
