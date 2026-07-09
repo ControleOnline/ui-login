@@ -36,8 +36,8 @@ export default function CreateAccountPage({navigation, route}) {
   const theme = useMemo(() => resolveSignInTheme(themeColors), [themeColors]);
   const styles = useMemo(() => createStyles(theme), [theme]);
 
-  const isManager = env.APP_TYPE === 'MANAGER';
-  const isShop = env.APP_TYPE === 'SHOP';
+  const isManager = app_type === 'MANAGER';
+  const isShop = app_type === 'SHOP';
 
   const [type, setType] = useState('PF');
   const [loading, setLoading] = useState(false);

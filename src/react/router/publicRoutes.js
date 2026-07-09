@@ -22,4 +22,4 @@ export const PUBLIC_ROUTES = new Set([
 
 export const isPublicRoute = routeName =>
   PUBLIC_ROUTES.has(routeName) ||
-  (routeName === 'HomePage' && String(env.APP_TYPE || '').toUpperCase() === 'SHOP')
+  (routeName === 'HomePage' && String(app_type || '').toUpperCase() === 'SHOP')
