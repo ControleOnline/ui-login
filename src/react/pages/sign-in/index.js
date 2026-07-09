@@ -11,16 +11,27 @@
  * - Prompts sobre login, autenticacao, sessao, create account e guardas de acesso.
  */
 
-﻿import React, { useState, useCallback, useEffect, useMemo } from 'react';
-import { Text, TextInput, TouchableOpacity, View, ActivityIndicator, KeyboardAvoidingView, Platform, StatusBar, Image, Modal } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, {useState, useCallback, useEffect, useMemo} from 'react';
+import {
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  StatusBar,
+  Image,
+  Modal,
+} from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import * as Animatable from 'react-native-animatable';
 import {useFocusEffect, useRoute} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Feather';
-import { useStore } from '@store';
-import { api } from '@controleonline/ui-common/src/api';
+import {useStore} from '@store';
+import {api} from '@controleonline/ui-common/src/api';
 import {useMessage} from '@controleonline/ui-common/src/react/components/MessageService';
-import {buildAssetUrl} from '@controleonline/../../src/styles/branding';
+import {resolveFileImageUrl} from '@controleonline/ui-common/src/react/utils/fileUrl';
 import {resolveCompanyGoogleOauthClientId} from '@controleonline/ui-common/src/utils/oauth';
 
 import {createStyles, resolveSignInTheme} from './index.styles';
@@ -165,7 +176,9 @@ const requestGoogleAccessToken = async clientId => {
 };
 
 const resolveGoogleOauthErrorMessage = error => {
-  const errorMessage = String(error?.message || '').trim().toLowerCase();
+  const errorMessage = String(error?.message || '')
+    .trim()
+    .toLowerCase();
 
   if (errorMessage === 'popup_closed') {
     return 'A janela do Google foi fechada antes da autenticacao.';
@@ -185,7 +198,7 @@ const resolveGoogleOauthErrorMessage = error => {
   return error?.message || 'Nao foi possivel entrar com Google.';
 };
 
-export default function SignIn({ navigation }) {
+export default function SignIn({navigation}) {
   const route = useRoute();
   const {showSuccess, showError} = useMessage();
   const [username, setUsername] = useState('');
@@ -206,6 +219,7 @@ export default function SignIn({ navigation }) {
     [route?.params?.redirectParams],
   );
   const peopleStore = useStore('people');
+  const peopleActions = peopleStore.actions;
   const peopleGetters = peopleStore.getters;
   const themeGetters = themeStore?.getters || {};
   const {defaultCompany, currentCompany} = peopleGetters;
@@ -231,11 +245,27 @@ export default function SignIn({ navigation }) {
   );
   const canUseGoogleLogin = Platform.OS === 'web' && !!googleClientId;
 
-  const logoUrl = buildAssetUrl(brandCompany?.logo);
+  const logoUrl = useMemo(
+    () => resolveFileImageUrl(brandCompany?.logo, {company: brandCompany}),
+    [brandCompany],
+  );
+  const backgroundUrl = useMemo(
+    () =>
+      resolveFileImageUrl(brandCompany?.theme?.background, {
+        company: brandCompany,
+      }),
+    [brandCompany],
+  );
 
   useEffect(() => {
     setLogoLoadError(false);
   }, [logoUrl]);
+
+  useFocusEffect(
+    useCallback(() => {
+      peopleActions.defaultCompany().catch(() => {});
+    }, [peopleActions]),
+  );
 
   useEffect(() => {
     if (!canUseGoogleLogin) {
@@ -266,8 +296,14 @@ export default function SignIn({ navigation }) {
 
   const validateForm = () => {
     const newErrors = {};
-    if (!username.trim()) newErrors.username = global.t?.t('auth', 'label', 'Email é obrigatório') || 'Email é obrigatório';
-    if (!password.trim()) newErrors.password = global.t?.t('auth', 'label', 'Senha é obrigatória') || 'Senha é obrigatória';
+    if (!username.trim())
+      newErrors.username =
+        global.t?.t('auth', 'label', 'Email é obrigatório') ||
+        'Email é obrigatório';
+    if (!password.trim())
+      newErrors.password =
+        global.t?.t('auth', 'label', 'Senha é obrigatória') ||
+        'Senha é obrigatória';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -277,7 +313,7 @@ export default function SignIn({ navigation }) {
     setIsLoading(true);
     setErrors({});
     try {
-      await actions.signIn({ username, password });
+      await actions.signIn({username, password});
       const postLoginRoute = getPostLoginRoute(navigation, route);
       if (postLoginRoute) {
         navigation.reset({
@@ -291,7 +327,15 @@ export default function SignIn({ navigation }) {
         });
       }
     } catch (error) {
-      showError(error.message || global.t?.t('auth', 'label', 'Credenciais inválidas. Tente novamente.') || 'Credenciais inválidas. Tente novamente.');
+      showError(
+        error.message ||
+          global.t?.t(
+            'auth',
+            'label',
+            'Credenciais inválidas. Tente novamente.',
+          ) ||
+          'Credenciais inválidas. Tente novamente.',
+      );
     } finally {
       setIsLoading(false);
     }
@@ -352,13 +396,18 @@ export default function SignIn({ navigation }) {
         },
       });
 
-      showSuccess('Se o login existir, o link de recuperação será enviado para o e-mail informado.', {
-        duration: 4000,
-      });
+      showSuccess(
+        'Se o login existir, o link de recuperação será enviado para o e-mail informado.',
+        {
+          duration: 4000,
+        },
+      );
       setRecoveryLogin('');
       setForgotPasswordVisible(false);
     } catch (error) {
-      showError(error?.message || 'Não foi possível enviar o link de recuperação.');
+      showError(
+        error?.message || 'Não foi possível enviar o link de recuperação.',
+      );
     } finally {
       setIsRecovering(false);
     }
@@ -369,9 +418,19 @@ export default function SignIn({ navigation }) {
   };
 
   const content = (
-    <SafeAreaView
-      style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={theme.pageBackground} />
+    <SafeAreaView style={styles.container}>
+      {backgroundUrl ? (
+        <Image
+          source={{uri: backgroundUrl}}
+          style={styles.backgroundImage}
+          resizeMode="cover"
+        />
+      ) : null}
+      <View style={styles.backgroundOverlay} pointerEvents="none" />
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor={theme.pageBackground}
+      />
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -379,7 +438,10 @@ export default function SignIn({ navigation }) {
         <View style={styles.centerBlock}>
           <View style={styles.header}>
             {logoUrl && !logoLoadError ? (
-              <Animatable.View animation="fadeInDown" delay={200} style={styles.logoContainer}>
+              <Animatable.View
+                animation="fadeInDown"
+                delay={200}
+                style={styles.logoContainer}>
                 <Image
                   source={{uri: logoUrl}}
                   style={styles.logo}
@@ -389,14 +451,30 @@ export default function SignIn({ navigation }) {
               </Animatable.View>
             ) : null}
 
-            <Animatable.Text animation="fadeIn" delay={400} style={styles.subtitle}>
-              {global.t?.t('auth', 'label', 'Entre com suas credenciais para acessar') || 'Entre com suas credenciais para acessar'}
+            <Animatable.Text
+              animation="fadeIn"
+              delay={400}
+              style={styles.subtitle}>
+              {global.t?.t(
+                'auth',
+                'label',
+                'Entre com suas credenciais para acessar',
+              ) || 'Entre com suas credenciais para acessar'}
             </Animatable.Text>
           </View>
 
           <Animatable.View animation="fadeInUp" delay={600} style={styles.form}>
-            <View style={[styles.inputContainer, errors.username && styles.inputError]}>
-              <Icon name="mail" size={20} color={theme.inputIcon} style={styles.inputIcon} />
+            <View
+              style={[
+                styles.inputContainer,
+                errors.username && styles.inputError,
+              ]}>
+              <Icon
+                name="mail"
+                size={20}
+                color={theme.inputIcon}
+                style={styles.inputIcon}
+              />
               <TextInput
                 placeholder={global.t?.t('auth', 'label', 'Email') || 'Email'}
                 placeholderTextColor={theme.inputPlaceholderText}
@@ -408,8 +486,17 @@ export default function SignIn({ navigation }) {
               />
             </View>
 
-            <View style={[styles.inputContainer, errors.password && styles.inputError]}>
-              <Icon name="lock" size={20} color={theme.inputIcon} style={styles.inputIcon} />
+            <View
+              style={[
+                styles.inputContainer,
+                errors.password && styles.inputError,
+              ]}>
+              <Icon
+                name="lock"
+                size={20}
+                color={theme.inputIcon}
+                style={styles.inputIcon}
+              />
               <TextInput
                 placeholder={global.t?.t('auth', 'label', 'Senha') || 'Senha'}
                 placeholderTextColor={theme.inputPlaceholderText}
@@ -453,7 +540,8 @@ export default function SignIn({ navigation }) {
                 <TouchableOpacity
                   style={[
                     styles.googleButton,
-                    (isLoading || isGoogleLoading) && styles.googleButtonDisabled,
+                    (isLoading || isGoogleLoading) &&
+                      styles.googleButtonDisabled,
                   ]}
                   onPress={handleGoogleSignIn}
                   disabled={isLoading || isGoogleLoading}>
@@ -491,7 +579,8 @@ export default function SignIn({ navigation }) {
               style={styles.forgotPasswordButton}
               onPress={() => setForgotPasswordVisible(true)}>
               <Text style={styles.forgotPasswordText}>
-                {global.t?.t('auth', 'label', 'forgotPassword') || 'Esqueci minha senha'}
+                {global.t?.t('auth', 'label', 'forgotPassword') ||
+                  'Esqueci minha senha'}
               </Text>
             </TouchableOpacity>
 
@@ -504,7 +593,8 @@ export default function SignIn({ navigation }) {
                 <View style={styles.recoveryModalContent}>
                   <View style={styles.recoveryModalHeader}>
                     <Text style={styles.recoveryModalTitle}>
-                      {global.t?.t('auth', 'label', 'recoverPassword') || 'Recuperar senha'}
+                      {global.t?.t('auth', 'label', 'recoverPassword') ||
+                        'Recuperar senha'}
                     </Text>
 
                     <TouchableOpacity
@@ -517,12 +607,18 @@ export default function SignIn({ navigation }) {
                   </View>
 
                   <Text style={styles.recoveryModalDescription}>
-                    {global.t?.t('auth', 'message', 'recoverPasswordDescription') ||
+                    {global.t?.t(
+                      'auth',
+                      'message',
+                      'recoverPasswordDescription',
+                    ) ||
                       'Informe seu e-mail para receber o link de recuperação de senha.'}
                   </Text>
 
                   <TextInput
-                    placeholder={global.t?.t('auth', 'label', 'E-mail') || 'E-mail'}
+                    placeholder={
+                      global.t?.t('auth', 'label', 'E-mail') || 'E-mail'
+                    }
                     placeholderTextColor={theme.inputPlaceholderText}
                     style={styles.recoveryInput}
                     value={recoveryLogin}
@@ -540,14 +636,14 @@ export default function SignIn({ navigation }) {
                       <ActivityIndicator color={theme.buttonText} />
                     ) : (
                       <Text style={styles.loginButtonText}>
-                        {global.t?.t('auth', 'label', 'recoverPassword') || 'Recuperar senha'}
+                        {global.t?.t('auth', 'label', 'recoverPassword') ||
+                          'Recuperar senha'}
                       </Text>
                     )}
                   </TouchableOpacity>
                 </View>
               </View>
             </Modal>
-
           </Animatable.View>
         </View>
       </KeyboardAvoidingView>

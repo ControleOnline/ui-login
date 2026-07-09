@@ -53,6 +53,9 @@ export const createStyles = (theme = resolveSignInTheme()) =>
       flex: 1,
       paddingHorizontal: 24,
     },
+    backgroundImage: {
+      ...StyleSheet.absoluteFillObject,
+    },
     centerBlock: {
       flex: 1,
       justifyContent: 'center',
@@ -62,7 +65,7 @@ export const createStyles = (theme = resolveSignInTheme()) =>
       paddingBottom: height * 0.02,
     },
     backgroundOverlay: {
-      flex: 1,
+      ...StyleSheet.absoluteFillObject,
       backgroundColor: theme.overlayBackground,
     },
     containerTransparent: {
