@@ -16,6 +16,7 @@ import {
   formatDisplayUppercase,
   uppercaseText,
 } from '@controleonline/ui-common/src/react/utils/entityDisplay';
+import { resolveAppDomain, resolveRuntimeHost } from '@controleonline/ui-common/src/utils/appDomain';
 import {useStore} from '@store';
 import {useMessage} from '@controleonline/ui-common/src/react/components/MessageService';
 import Formatter from '@controleonline/ui-common/src/utils/formatter';
@@ -39,6 +40,23 @@ export default function CreateAccountPage({navigation, route}) {
 
   const isManager = app_type === 'MANAGER';
   const isShop = app_type === 'SHOP';
+  const appDomain = useMemo(
+    () => resolveAppDomain(env.DOMAIN),
+    [],
+  );
+  const managerProtocol = useMemo(() => {
+    const runtimeProtocol =
+      typeof globalThis !== 'undefined' ? String(globalThis?.location?.protocol || '').trim() : '';
+
+    if (/^https?:$/i.test(runtimeProtocol)) {
+      return runtimeProtocol;
+    }
+
+    const runtimeHost = resolveRuntimeHost();
+    return runtimeHost.startsWith('localhost') || runtimeHost.startsWith('127.0.0.1')
+      ? 'http:'
+      : 'https:';
+  }, []);
 
   const [type, setType] = useState('PF');
   const [loading, setLoading] = useState(false);
@@ -62,8 +80,17 @@ export default function CreateAccountPage({navigation, route}) {
   });
 
   const managerUrl = useMemo(() => {
-    return `${env.MANAGER_APP}/create-account`;
-  }, []);
+    if (appDomain) {
+      return `${managerProtocol}//${appDomain}/create-account`;
+    }
+
+    if (typeof globalThis !== 'undefined' && typeof globalThis?.location?.origin === 'string') {
+      const origin = globalThis.location.origin.replace(/\/$/, '');
+      return `${origin}/create-account`;
+    }
+
+    return '/create-account';
+  }, [appDomain, managerProtocol]);
 
   const validateForm = () => {
 
@@ -145,7 +172,7 @@ export default function CreateAccountPage({navigation, route}) {
         {
           method: 'POST',
           headers: {
-            'app-domain': env.DOMAIN,
+            'app-domain': appDomain,
             'Content-Type': 'application/json',
             Accept: 'application/json',
           },
