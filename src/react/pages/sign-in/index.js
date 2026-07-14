@@ -30,6 +30,7 @@ import Icon from 'react-native-vector-icons/Feather';
 import {useStore} from '@store';
 import {api} from '@controleonline/ui-common/src/api';
 import {useMessage} from '@controleonline/ui-common/src/react/components/MessageService';
+import {resolveFileImageUrl} from '@controleonline/ui-common/src/react/utils/fileUrl';
 import {resolveCompanyGoogleOauthClientId} from '@controleonline/ui-common/src/utils/oauth';
 import DefaultFile from '@controleonline/ui-default/src/react/components/files/DefaultFile';
 
@@ -243,12 +244,21 @@ export default function SignIn({navigation}) {
     [currentCompany, defaultCompany],
   );
   const canUseGoogleLogin = Platform.OS === 'web' && !!googleClientId;
+  const iconFile = brandCompany?.icon || null;
   const logoFile = brandCompany?.logo || null;
   const backgroundFile = brandCompany?.theme?.background || null;
 
   useEffect(() => {
     setLogoLoadError(false);
   }, [logoFile]);
+
+  useEffect(() => {
+    console.log('sign-in branding urls', {
+      icon: resolveFileImageUrl(iconFile, {company: brandCompany}),
+      logo: resolveFileImageUrl(logoFile, {company: brandCompany}),
+      background: resolveFileImageUrl(backgroundFile, {company: brandCompany}),
+    });
+  }, [backgroundFile, brandCompany, iconFile, logoFile]);
 
   useFocusEffect(
     useCallback(() => {
