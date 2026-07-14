@@ -35,15 +35,6 @@ import DefaultFile from '@controleonline/ui-default/src/react/components/files/D
 
 import {createStyles, resolveSignInTheme} from './index.styles';
 
-const normalizeCollection = payload => {
-  if (Array.isArray(payload)) return payload;
-  if (!payload || typeof payload !== 'object') return [];
-  if (Array.isArray(payload.member)) return payload.member;
-  if (Array.isArray(payload['hydra:member'])) return payload['hydra:member'];
-  if (Array.isArray(payload.items)) return payload.items;
-  return [];
-};
-
 const getPostLoginRoute = (navigation, route) => {
   const redirectRoute = route?.params?.redirectRoute;
   if (redirectRoute && redirectRoute !== 'SignInPage') {
@@ -219,10 +210,6 @@ export default function SignIn({navigation}) {
   const [logoLoadError, setLogoLoadError] = useState(false);
   const [forgotPasswordVisible, setForgotPasswordVisible] = useState(false);
   const [recoveryLogin, setRecoveryLogin] = useState('');
-  const [brandMediaFiles, setBrandMediaFiles] = useState({
-    background: null,
-    logo: null,
-  });
   const authStore = useStore('auth');
   const themeStore = useStore('theme');
   const actions = authStore.actions;
@@ -256,69 +243,12 @@ export default function SignIn({navigation}) {
     [currentCompany, defaultCompany],
   );
   const canUseGoogleLogin = Platform.OS === 'web' && !!googleClientId;
-  const brandCompanyIri = brandCompany?.id ? `/people/${brandCompany.id}` : '';
-  const logoFile = brandMediaFiles.logo;
-  const backgroundFile = brandMediaFiles.background;
+  const logoFile = brandCompany?.logo || null;
+  const backgroundFile = brandCompany?.theme?.background || null;
 
   useEffect(() => {
     setLogoLoadError(false);
   }, [logoFile]);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    if (!brandCompanyIri) {
-      setBrandMediaFiles({
-        background: null,
-        logo: null,
-      });
-      return undefined;
-    }
-
-    Promise.all([
-      api.fetch('/people_media', {
-        params: {
-          people: brandCompanyIri,
-          'mediaType.type': 'logo',
-          'mediaType.peopleType': 'J',
-          itemsPerPage: 1,
-        },
-      }),
-      api.fetch('/people_media', {
-        params: {
-          people: brandCompanyIri,
-          'mediaType.type': 'background',
-          'mediaType.peopleType': 'J',
-          itemsPerPage: 1,
-        },
-      }),
-    ])
-      .then(([logoResponse, backgroundResponse]) => {
-        if (cancelled) {
-          return;
-        }
-
-        const [logoMedia] = normalizeCollection(logoResponse);
-        const [backgroundMedia] = normalizeCollection(backgroundResponse);
-
-        setBrandMediaFiles({
-          background: backgroundMedia?.file || null,
-          logo: logoMedia?.file || null,
-        });
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setBrandMediaFiles({
-            background: null,
-            logo: null,
-          });
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [brandCompanyIri]);
 
   useFocusEffect(
     useCallback(() => {
