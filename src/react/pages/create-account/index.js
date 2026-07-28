@@ -23,16 +23,11 @@ import Formatter from '@controleonline/ui-common/src/utils/formatter';
 import {resolveSignInTheme} from '../sign-in/index.styles';
 import {createStyles} from './index.styles';
 
-const resolveApiErrorMessage = payload =>
-  payload?.['hydra:description'] ||
-  payload?.message ||
-  payload?.error ||
-  payload?.['hydra:title'] ||
-  'Erro ao criar conta';
-
 export default function CreateAccountPage({navigation, route}) {
   const {showError, showSuccess} = useMessage();
+  const authStore = useStore('auth');
   const themeStore = useStore('theme');
+  const actions = authStore.actions;
   const themeGetters = themeStore?.getters || {};
   const {colors: themeColors} = themeGetters;
   const theme = useMemo(() => resolveSignInTheme(themeColors), [themeColors]);
@@ -167,23 +162,7 @@ export default function CreateAccountPage({navigation, route}) {
 
       }
 
-      const response = await fetch(
-        `${env.API_ENTRYPOINT}/create-account`,
-        {
-          method: 'POST',
-          headers: {
-            'app-domain': appDomain,
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-          },
-          body: JSON.stringify(payload),
-        },
-      );
-
-      const json = await response.json();
-
-      if (!response.ok)
-        throw new Error(resolveApiErrorMessage(json));
+      const json = await actions.signUp(payload);
 
       showSuccess(
         json?.message ||

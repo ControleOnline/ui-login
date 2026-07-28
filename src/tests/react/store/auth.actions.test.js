@@ -110,4 +110,32 @@ describe('auth restoreSession', () => {
     expect(commit).toHaveBeenCalledWith(types.LOGIN_SET_USER, session)
     expect(commit).toHaveBeenCalledWith(types.LOGIN_SET_IS_LOGGED, true)
   })
+
+  it('creates accounts through the public create-account endpoint', async () => {
+    api.fetch.mockResolvedValueOnce({
+      success: true,
+      message: 'Cadastro criado com sucesso.',
+    })
+
+    const commit = jest.fn()
+    const payload = {
+      people: {
+        email: 'owner@example.com',
+      },
+    }
+
+    const response = await actions.signUp({commit}, payload)
+
+    expect(api.fetch).toHaveBeenCalledWith('create-account', {
+      method: 'POST',
+      body: payload,
+    })
+    expect(response).toEqual({
+      success: true,
+      message: 'Cadastro criado com sucesso.',
+    })
+    expect(commit).toHaveBeenCalledWith(types.LOGIN_SET_ERROR, '')
+    expect(commit).toHaveBeenCalledWith(types.LOGIN_SET_ISLOADING)
+    expect(commit).toHaveBeenCalledWith(types.LOGIN_SET_ISLOADING, false)
+  })
 })

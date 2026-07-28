@@ -130,7 +130,7 @@ export const signUp = ({ commit }, values) => {
   commit(types.LOGIN_SET_ISLOADING);
 
   return api
-    .fetch("users/create-account", { method: "POST", body: values })
+    .fetch("create-account", { method: "POST", body: values })
     .then((response) => {
       commit(types.LOGIN_SET_ISLOADING, false);
       return response;
@@ -145,7 +145,8 @@ export const signUp = ({ commit }, values) => {
 
         return data.response;
       }
-      return null;
+
+      return data;
     })
     .finally(() => {
       commit(types.LOGIN_SET_ISLOADING, false);
