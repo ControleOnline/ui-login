@@ -46,6 +46,28 @@ const normalizeRedirectParams = redirectParams => {
   return typeof redirectParams === 'object' ? redirectParams : undefined;
 };
 
+const resolveRedirectRoute = (routeNames, redirectRoute) => {
+  if (!redirectRoute || redirectRoute === 'SignInPage') {
+    return null;
+  }
+
+  if (routeNames.includes(redirectRoute)) {
+    return redirectRoute;
+  }
+
+  const redirectAliases = {
+    ProfilePage: 'ShopProfilePage',
+    ShopProfileLegacyPage: 'ShopProfilePage',
+  };
+  const aliasedRoute = redirectAliases[redirectRoute];
+
+  if (aliasedRoute && routeNames.includes(aliasedRoute)) {
+    return aliasedRoute;
+  }
+
+  return null;
+};
+
 const CheckLogin = ({}) => {
   const navigation = useNavigation();
   const authStore = useStore('auth');
@@ -60,6 +82,7 @@ const CheckLogin = ({}) => {
     if (routeNames.includes('HomePage')) return 'HomePage';
     if (routeNames.includes('CrmIndex')) return 'CrmIndex';
     if (routeNames.includes('OrderHistoryPage')) return 'OrderHistoryPage';
+    if (routeNames.includes('ShopIndex')) return 'ShopIndex';
     return routeNames.find(name => name !== 'SignInPage') || null;
   }, [navigation]);
   useEffect(() => {
@@ -101,8 +124,13 @@ const CheckLogin = ({}) => {
         ],
       });
     } else if (isLogged && currentRouteName == 'SignInPage') {
+      const routeNames = navigation?.getState?.()?.routeNames || [];
+      const resolvedRedirectRoute = resolveRedirectRoute(
+        routeNames,
+        currentRoute?.params?.redirectRoute,
+      );
       const postLoginRoute =
-        currentRoute?.params?.redirectRoute || getPostLoginRoute();
+        resolvedRedirectRoute || getPostLoginRoute();
       if (!postLoginRoute) return;
       navigation.reset({
         index: 0,

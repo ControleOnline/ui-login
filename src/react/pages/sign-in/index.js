@@ -36,16 +36,43 @@ import DefaultFile from '@controleonline/ui-default/src/react/components/files/D
 
 import {createStyles, resolveSignInTheme} from './index.styles';
 
-const getPostLoginRoute = (navigation, route) => {
-  const redirectRoute = route?.params?.redirectRoute;
-  if (redirectRoute && redirectRoute !== 'SignInPage') {
+const resolveRedirectRoute = (routeNames, redirectRoute) => {
+  if (!redirectRoute || redirectRoute === 'SignInPage') {
+    return null;
+  }
+
+  if (routeNames.includes(redirectRoute)) {
     return redirectRoute;
   }
 
+  const redirectAliases = {
+    ProfilePage: 'ShopProfilePage',
+    ShopProfileLegacyPage: 'ShopProfilePage',
+  };
+  const aliasedRoute = redirectAliases[redirectRoute];
+
+  if (aliasedRoute && routeNames.includes(aliasedRoute)) {
+    return aliasedRoute;
+  }
+
+  return null;
+};
+
+const getPostLoginRoute = (navigation, route) => {
   const routeNames = navigation?.getState?.()?.routeNames || [];
+  const resolvedRedirectRoute = resolveRedirectRoute(
+    routeNames,
+    route?.params?.redirectRoute,
+  );
+
+  if (resolvedRedirectRoute) {
+    return resolvedRedirectRoute;
+  }
+
   if (routeNames.includes('HomePage')) return 'HomePage';
   if (routeNames.includes('CrmIndex')) return 'CrmIndex';
   if (routeNames.includes('OrderHistoryPage')) return 'OrderHistoryPage';
+  if (routeNames.includes('ShopIndex')) return 'ShopIndex';
   return routeNames.find(name => name !== 'SignInPage') || null;
 };
 
