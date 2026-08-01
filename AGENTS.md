@@ -17,3 +17,7 @@
 - Login com Google so pode aparecer quando a empresa atual expuser `clientId` valido.
 - O modulo deve manter o tema vindo de `themeStore.getters.colors` e nao introduzir cores fixas no fluxo.
 - Qualquer mudanca visivel no browser precisa manter cobertura em `src/tests/browser` quando houver impacto no login.
+
+## Qualidade de código
+
+- A barra comum de modularizacao, testes, smoke tests e limite de tamanho de componentes vive em `https://github.com/ControleOnline/agents-mcp/blob/master/skills/shared/code-quality.md`.
