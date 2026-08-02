@@ -20,23 +20,10 @@ const parseStoredSession = () => {
   }
 };
 
-const isNotFoundError = error =>
-  Number(error?.status || error?.code) === 404;
-
 const normalizeStatusResponse = response =>
   response?.response?.data ?? response?.data ?? response ?? null;
 
-const fetchPeopleStatus = async peopleId => {
-  try {
-    return await api.fetch(`people/${peopleId}/status`, {});
-  } catch (error) {
-    if (!isNotFoundError(error)) {
-      throw error;
-    }
-
-    return api.fetch(`people/${peopleId}`, {});
-  }
-};
+const fetchPeopleStatus = peopleId => api.fetch(`people/${peopleId}`, {});
 
 export const signIn = ({ commit }, values) => {
   commit(types.LOGIN_SET_ERROR, "");
@@ -143,7 +130,7 @@ export const signUp = ({ commit }, values) => {
   commit(types.LOGIN_SET_ISLOADING);
 
   return api
-    .fetch("users/create-account", { method: "POST", body: values })
+    .fetch("create-account", { method: "POST", body: values })
     .then((response) => {
       commit(types.LOGIN_SET_ISLOADING, false);
       return response;
@@ -158,7 +145,8 @@ export const signUp = ({ commit }, values) => {
 
         return data.response;
       }
-      return null;
+
+      return data;
     })
     .finally(() => {
       commit(types.LOGIN_SET_ISLOADING, false);
@@ -182,12 +170,28 @@ export const getLoggedUser = ({ state }) => {
 };
 
 export const logOut = ({ commit }) => {
-  
+  let clearManagerPushTokenPromise = null;
+
+  if (typeof global.clearManagerPushTokenOnLogout === 'function') {
+    try {
+      clearManagerPushTokenPromise = global.clearManagerPushTokenOnLogout();
+    } catch (error) {
+      console.warn('Failed to clear manager push token on logout', error);
+    }
+  }
+
   commit(types.LOGIN_SET_USER, null);
   commit(types.LOGIN_SET_IS_LOGGED, false);
   commit(types.LOGIN_SET_SESSION_CHECKED, true);
-  localStorage.clear();
 
+  if (clearManagerPushTokenPromise?.finally) {
+    clearManagerPushTokenPromise.finally(() => {
+      localStorage.clear();
+    });
+    return;
+  }
+
+  localStorage.clear();
 };
 
 export const setIndexRoute = ({ commit }, indexRoute) => {

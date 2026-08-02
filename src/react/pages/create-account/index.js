@@ -1,23 +1,57 @@
 import React, { useState, useMemo } from 'react';
-import { Text, View, TextInput, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
+import {
+  Text,
+  View,
+  TextInput,
+  TouchableOpacity,
+  ActivityIndicator,
+  ScrollView,
+  StatusBar,
+} from 'react-native';
 
 import QRCode from 'react-native-qrcode-svg';
 import { env } from '@env';
-import { colors } from '@controleonline/../../src/styles/colors';
+import {app_type} from '@appType';
+import {
+  formatDisplayUppercase,
+  uppercaseText,
+} from '@controleonline/ui-common/src/react/utils/entityDisplay';
+import { resolveAppDomain, resolveRuntimeHost } from '@controleonline/ui-common/src/utils/appDomain';
+import {useStore} from '@store';
+import {useMessage} from '@controleonline/ui-common/src/react/components/MessageService';
 import Formatter from '@controleonline/ui-common/src/utils/formatter';
-import styles from './index.styles';
+import {resolveSignInTheme} from '../sign-in/index.styles';
+import {createStyles} from './index.styles';
 
-const resolveApiErrorMessage = payload =>
-  payload?.['hydra:description'] ||
-  payload?.message ||
-  payload?.error ||
-  payload?.['hydra:title'] ||
-  'Erro ao criar conta';
+export default function CreateAccountPage({navigation, route}) {
+  const {showError, showSuccess} = useMessage();
+  const authStore = useStore('auth');
+  const themeStore = useStore('theme');
+  const actions = authStore.actions;
+  const themeGetters = themeStore?.getters || {};
+  const {colors: themeColors} = themeGetters;
+  const theme = useMemo(() => resolveSignInTheme(themeColors), [themeColors]);
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
-export default function CreateAccountPage() {
+  const isManager = app_type === 'MANAGER';
+  const isShop = app_type === 'SHOP';
+  const appDomain = useMemo(
+    () => resolveAppDomain(env.DOMAIN),
+    [],
+  );
+  const managerProtocol = useMemo(() => {
+    const runtimeProtocol =
+      typeof globalThis !== 'undefined' ? String(globalThis?.location?.protocol || '').trim() : '';
 
-  const isManager = env.APP_TYPE === 'MANAGER';
-  const isShop = env.APP_TYPE === 'SHOP';
+    if (/^https?:$/i.test(runtimeProtocol)) {
+      return runtimeProtocol;
+    }
+
+    const runtimeHost = resolveRuntimeHost();
+    return runtimeHost.startsWith('localhost') || runtimeHost.startsWith('127.0.0.1')
+      ? 'http:'
+      : 'https:';
+  }, []);
 
   const [type, setType] = useState('PF');
   const [loading, setLoading] = useState(false);
@@ -41,8 +75,17 @@ export default function CreateAccountPage() {
   });
 
   const managerUrl = useMemo(() => {
-    return `${env.MANAGER_APP}/create-account`;
-  }, []);
+    if (appDomain) {
+      return `${managerProtocol}//${appDomain}/create-account`;
+    }
+
+    if (typeof globalThis !== 'undefined' && typeof globalThis?.location?.origin === 'string') {
+      const origin = globalThis.location.origin.replace(/\/$/, '');
+      return `${origin}/create-account`;
+    }
+
+    return '/create-account';
+  }, [appDomain, managerProtocol]);
 
   const validateForm = () => {
 
@@ -83,7 +126,7 @@ export default function CreateAccountPage() {
     const error = validateForm();
 
     if (error) {
-      alert(error);
+      showError(error);
       return;
     }
 
@@ -94,8 +137,8 @@ export default function CreateAccountPage() {
       const payload = {
         people: {
           document: Formatter.onlyNumbers(people.document),
-          name: people.name,
-          alias: people.alias,
+          name: formatDisplayUppercase(people.name),
+          alias: formatDisplayUppercase(people.alias),
           email: people.email,
           phone: {
             ddi: people.ddi,
@@ -113,35 +156,29 @@ export default function CreateAccountPage() {
 
         payload.company = {
           document: Formatter.onlyNumbers(company.document),
-          name: company.name,
-          alias: company.alias,
+          name: formatDisplayUppercase(company.name),
+          alias: formatDisplayUppercase(company.alias),
         };
 
       }
 
-      const response = await fetch(
-        `${env.API_ENTRYPOINT}/create-account`,
-        {
-          method: 'POST',
-          headers: {
-            'app-domain': env.DOMAIN,
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-          },
-          body: JSON.stringify(payload),
-        },
+      const json = await actions.signUp(payload);
+
+      showSuccess(
+        json?.message ||
+          'Cadastro criado com sucesso. Confira seu e-mail para ativar a conta.',
       );
 
-      const json = await response.json();
-
-      if (!response.ok)
-        throw new Error(resolveApiErrorMessage(json));
-
-      alert('Conta criada com sucesso!');
+      setTimeout(() => {
+        navigation?.navigate?.('SignInPage', {
+          redirectRoute: route?.params?.redirectRoute,
+          redirectParams: route?.params?.redirectParams,
+        });
+      }, 1200);
 
     } catch (e) {
 
-      alert(e.message);
+      showError(e.message);
 
     } finally {
 
@@ -155,6 +192,7 @@ export default function CreateAccountPage() {
 
     return (
       <View style={styles.center}>
+        <StatusBar barStyle="dark-content" backgroundColor={theme.pageBackground} />
 
         <Text style={styles.title}>
           Criar conta
@@ -180,7 +218,8 @@ export default function CreateAccountPage() {
 
     return (
 
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView style={styles.page} contentContainerStyle={styles.container}>
+        <StatusBar barStyle="dark-content" backgroundColor={theme.pageBackground} />
 
         <Text style={styles.title}>
           Criar Conta
@@ -195,7 +234,11 @@ export default function CreateAccountPage() {
             ]}
             onPress={() => setType('PF')}
           >
-            <Text style={styles.typeText}>
+            <Text
+              style={[
+                styles.typeText,
+                type === 'PF' && styles.typeTextActive,
+              ]}>
               Pessoa Física
             </Text>
           </TouchableOpacity>
@@ -203,11 +246,16 @@ export default function CreateAccountPage() {
           <TouchableOpacity
             style={[
               styles.typeButton,
+              styles.typeButtonLast,
               type === 'PJ' && styles.typeButtonActive,
             ]}
             onPress={() => setType('PJ')}
           >
-            <Text style={styles.typeText}>
+            <Text
+              style={[
+                styles.typeText,
+                type === 'PJ' && styles.typeTextActive,
+              ]}>
               Pessoa Jurídica
             </Text>
           </TouchableOpacity>
@@ -221,6 +269,7 @@ export default function CreateAccountPage() {
         <TextInput
           style={styles.input}
           placeholder="CPF"
+          placeholderTextColor={theme.inputPlaceholderText}
           keyboardType="numeric"
           maxLength={11+3} // 11 dígitos + máscara
           value={people.document}
@@ -232,20 +281,23 @@ export default function CreateAccountPage() {
         <TextInput
           style={styles.input}
           placeholder="Nome completo"
+          placeholderTextColor={theme.inputPlaceholderText}
           value={people.name}
-          onChangeText={v => setPeople({ ...people, name: v })}
+          onChangeText={v => setPeople({ ...people, name: uppercaseText(v) })}
         />
 
         <TextInput
           style={styles.input}
           placeholder="Como quer ser chamado?"
+          placeholderTextColor={theme.inputPlaceholderText}
           value={people.alias}
-          onChangeText={v => setPeople({ ...people, alias: v })}
+          onChangeText={v => setPeople({ ...people, alias: uppercaseText(v) })}
         />
 
         <TextInput
           style={styles.input}
           placeholder="Email"
+          placeholderTextColor={theme.inputPlaceholderText}
           keyboardType="email-address"
           value={people.email}
           onChangeText={v => setPeople({ ...people, email: v })}
@@ -260,6 +312,7 @@ export default function CreateAccountPage() {
           <TextInput
             style={[styles.input, styles.ddi]}
             placeholder="DDI"
+            placeholderTextColor={theme.inputPlaceholderText}
             keyboardType="numeric"
             maxLength={3}
             value={people.ddi}
@@ -271,6 +324,7 @@ export default function CreateAccountPage() {
           <TextInput
             style={[styles.input, styles.ddd]}
             placeholder="DDD"
+            placeholderTextColor={theme.inputPlaceholderText}
             keyboardType="numeric"
             maxLength={2}
             value={people.ddd}
@@ -282,6 +336,7 @@ export default function CreateAccountPage() {
           <TextInput
             style={[styles.input, styles.phone]}
             placeholder="Telefone"
+            placeholderTextColor={theme.inputPlaceholderText}
             keyboardType="numeric"
             value={people.phone}
             onChangeText={v =>
@@ -302,6 +357,7 @@ export default function CreateAccountPage() {
             <TextInput
               style={styles.input}
               placeholder="CNPJ"
+              placeholderTextColor={theme.inputPlaceholderText}
               keyboardType="numeric"
               maxLength={14+4} // 14 dígitos + máscara
               value={company.document}
@@ -313,18 +369,20 @@ export default function CreateAccountPage() {
             <TextInput
               style={styles.input}
               placeholder="Nome da empresa"
+              placeholderTextColor={theme.inputPlaceholderText}
               value={company.name}
               onChangeText={v =>
-                setCompany({ ...company, name: v })
+                setCompany({ ...company, name: uppercaseText(v) })
               }
             />
 
             <TextInput
               style={styles.input}
               placeholder="Nome fantasia"
+              placeholderTextColor={theme.inputPlaceholderText}
               value={company.alias}
               onChangeText={v =>
-                setCompany({ ...company, alias: v })
+                setCompany({ ...company, alias: uppercaseText(v) })
               }
             />
 
@@ -339,6 +397,7 @@ export default function CreateAccountPage() {
         <TextInput
           style={styles.input}
           placeholder="Usuário"
+          placeholderTextColor={theme.inputPlaceholderText}
           value={people.user}
           onChangeText={v =>
             setPeople({ ...people, user: v })
@@ -348,6 +407,7 @@ export default function CreateAccountPage() {
         <TextInput
           style={styles.input}
           placeholder="Senha"
+          placeholderTextColor={theme.inputPlaceholderText}
           secureTextEntry
           value={people.password}
           onChangeText={v =>
@@ -362,7 +422,7 @@ export default function CreateAccountPage() {
         >
 
           {loading
-            ? <ActivityIndicator color="#fff" />
+            ? <ActivityIndicator color={theme.buttonText} />
             : <Text style={styles.buttonText}>Criar conta</Text>
           }
 
@@ -375,3 +435,4 @@ export default function CreateAccountPage() {
   }
 
 }
+// TODO(store-first): quando este arquivo for mexido, mover a leitura para stores e evitar chamadas HTTP diretas quando o store ja resolver isso.
