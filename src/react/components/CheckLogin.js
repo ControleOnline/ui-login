@@ -1,16 +1,22 @@
-import React, {useState, useCallback, useEffect} from 'react';
+import React, {useState, useCallback, useEffect, useRef} from 'react';
 import {useNavigation} from '@react-navigation/native';
 import {useStore} from '@store';
 import {isPublicRoute} from '@controleonline/ui-login/src/react/router/publicRoutes';
 
 // Keys that must never be forwarded as post-login route params.
-// `store` is legacy ProfilePage initialParams noise that produced
-// /sign-in-page?redirectRoute=ProfilePage&redirectParams={"store":"auth"}.
 const REDIRECT_PARAM_BLACKLIST = new Set([
   'showBottomCart',
   'redirectRoute',
   'redirectParams',
   'store',
+]);
+
+// Profile redirects after logout/login are unreliable and caused a loop on
+// /sign-in-page?redirectRoute=ProfilePage. Prefer the app home instead.
+const SKIP_POST_LOGIN_REDIRECTS = new Set([
+  'ProfilePage',
+  'ShopProfilePage',
+  'ShopProfileLegacyPage',
 ]);
 
 const sanitizeParamObject = params => {
@@ -55,6 +61,10 @@ const resolveRedirectRoute = (routeNames, redirectRoute) => {
     return null;
   }
 
+  if (SKIP_POST_LOGIN_REDIRECTS.has(redirectRoute)) {
+    return null;
+  }
+
   if (routeNames.includes(redirectRoute)) {
     return redirectRoute;
   }
@@ -65,7 +75,11 @@ const resolveRedirectRoute = (routeNames, redirectRoute) => {
   };
   const aliasedRoute = redirectAliases[redirectRoute];
 
-  if (aliasedRoute && routeNames.includes(aliasedRoute)) {
+  if (
+    aliasedRoute &&
+    !SKIP_POST_LOGIN_REDIRECTS.has(aliasedRoute) &&
+    routeNames.includes(aliasedRoute)
+  ) {
     return aliasedRoute;
   }
 
@@ -80,6 +94,7 @@ const CheckLogin = ({}) => {
   const {isLogged, sessionChecked} = authGetters;
   const [currentRoute, setCurrentRoute] = useState(null);
   const currentRouteName = currentRoute?.name || '';
+  const navigatingRef = useRef(false);
 
   const getPostLoginRoute = useCallback(() => {
     const routeNames = navigation?.getState?.()?.routeNames || [];
@@ -87,7 +102,11 @@ const CheckLogin = ({}) => {
     if (routeNames.includes('CrmIndex')) return 'CrmIndex';
     if (routeNames.includes('OrderHistoryPage')) return 'OrderHistoryPage';
     if (routeNames.includes('ShopIndex')) return 'ShopIndex';
-    return routeNames.find(name => name !== 'SignInPage') || null;
+    return (
+      routeNames.find(
+        name => name !== 'SignInPage' && !SKIP_POST_LOGIN_REDIRECTS.has(name),
+      ) || null
+    );
   }, [navigation]);
 
   useEffect(() => {
@@ -113,21 +132,40 @@ const CheckLogin = ({}) => {
 
   useEffect(() => {
     if (!sessionChecked || !currentRouteName) return;
+    if (navigatingRef.current) return;
 
     if (!isLogged && !isPublicRoute(currentRouteName)) {
-      const redirectParams = getRedirectParams(currentRoute);
+      const preferClean =
+        typeof authActions.consumePreferCleanSignIn === 'function'
+          ? authActions.consumePreferCleanSignIn()
+          : false;
 
-      navigation.reset({
-        index: 0,
-        routes: [
-          {
-            name: 'SignInPage',
-            params: {
-              redirectRoute: currentRouteName,
-              ...(redirectParams ? {redirectParams} : {}),
+      navigatingRef.current = true;
+
+      if (preferClean) {
+        navigation.reset({
+          index: 0,
+          routes: [{name: 'SignInPage'}],
+        });
+      } else {
+        const redirectParams = getRedirectParams(currentRoute);
+
+        navigation.reset({
+          index: 0,
+          routes: [
+            {
+              name: 'SignInPage',
+              params: {
+                redirectRoute: currentRouteName,
+                ...(redirectParams ? {redirectParams} : {}),
+              },
             },
-          },
-        ],
+          ],
+        });
+      }
+
+      requestAnimationFrame(() => {
+        navigatingRef.current = false;
       });
       return;
     }
@@ -147,6 +185,7 @@ const CheckLogin = ({}) => {
         currentRoute?.params?.redirectParams,
       );
 
+      navigatingRef.current = true;
       navigation.reset({
         index: 0,
         routes: [
@@ -156,8 +195,12 @@ const CheckLogin = ({}) => {
           },
         ],
       });
+      requestAnimationFrame(() => {
+        navigatingRef.current = false;
+      });
     }
   }, [
+    authActions,
     currentRoute,
     currentRouteName,
     getPostLoginRoute,
