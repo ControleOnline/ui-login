@@ -1,14 +1,5 @@
 /*
- * Contract imported from AGENTS.md
- * ## Escopo
- * - Modulo de autenticacao e entrada do usuario.
- * - Cobre login, criacao de conta, validacao de sessao e fluxo inicial de acesso.
- *
- * ## Estado
- * - Este modulo tem implementacao ativa em `src/react` e deve constar em novos prompts.
- *
- * ## Quando usar
- * - Prompts sobre login, autenticacao, sessao, create account e guardas de acesso.
+ * Auth / Sign-in entry module. See AGENTS.md for full contract.
  */
 
 import React, {useState, useCallback, useEffect, useMemo} from 'react';
@@ -35,217 +26,15 @@ import {resolveCompanyGoogleOauthClientId} from '@controleonline/ui-common/src/u
 import DefaultFile from '@controleonline/ui-default/src/react/components/files/DefaultFile';
 
 import {createStyles, resolveSignInTheme} from './index.styles';
-
-// Keys that must never be forwarded as post-login route params.
-// `store` is legacy ProfilePage initialParams noise that produced
-// /sign-in-page?redirectRoute=ProfilePage&redirectParams={"store":"auth"}.
-const REDIRECT_PARAM_BLACKLIST = new Set([
-  'showBottomCart',
-  'redirectRoute',
-  'redirectParams',
-  'store',
-]);
-
-const sanitizeParamObject = params => {
-  if (!params || typeof params !== 'object' || Array.isArray(params)) {
-    return undefined;
-  }
-
-  const cleaned = Object.entries(params).reduce((acc, [key, value]) => {
-    if (!REDIRECT_PARAM_BLACKLIST.has(key) && value !== undefined) {
-      acc[key] = value;
-    }
-    return acc;
-  }, {});
-
-  return Object.keys(cleaned).length > 0 ? cleaned : undefined;
-};
-
-const resolveRedirectRoute = (routeNames, redirectRoute) => {
-  if (!redirectRoute || redirectRoute === 'SignInPage') {
-    return null;
-  }
-
-  if (routeNames.includes(redirectRoute)) {
-    return redirectRoute;
-  }
-
-  const redirectAliases = {
-    ProfilePage: 'ShopProfilePage',
-    ShopProfileLegacyPage: 'ShopProfilePage',
-  };
-  const aliasedRoute = redirectAliases[redirectRoute];
-
-  if (aliasedRoute && routeNames.includes(aliasedRoute)) {
-    return aliasedRoute;
-  }
-
-  return null;
-};
-
-const getPostLoginRoute = (navigation, route) => {
-  const routeNames = navigation?.getState?.()?.routeNames || [];
-  const resolvedRedirectRoute = resolveRedirectRoute(
-    routeNames,
-    route?.params?.redirectRoute,
-  );
-
-  if (resolvedRedirectRoute) {
-    return resolvedRedirectRoute;
-  }
-
-  if (routeNames.includes('HomePage')) return 'HomePage';
-  if (routeNames.includes('CrmIndex')) return 'CrmIndex';
-  if (routeNames.includes('OrderHistoryPage')) return 'OrderHistoryPage';
-  if (routeNames.includes('ShopIndex')) return 'ShopIndex';
-  return routeNames.find(name => name !== 'SignInPage') || null;
-};
-
-const normalizeRedirectParams = redirectParams => {
-  if (!redirectParams) {
-    return undefined;
-  }
-
-  if (typeof redirectParams === 'string') {
-    try {
-      const parsedParams = JSON.parse(redirectParams);
-      return sanitizeParamObject(parsedParams);
-    } catch {
-      return undefined;
-    }
-  }
-
-  return sanitizeParamObject(redirectParams);
-};
-
-const GOOGLE_OAUTH_SCRIPT_ID = 'google-oauth-client-script';
-const GOOGLE_OAUTH_SCOPE = 'openid email profile';
-
-let googleOauthScriptPromise = null;
-
-const getGoogleOauthApi = () => {
-  if (typeof window === 'undefined') {
-    return null;
-  }
-
-  return window.google?.accounts?.oauth2 || null;
-};
-
-const loadGoogleOauthApi = () => {
-  if (Platform.OS !== 'web') {
-    return Promise.reject(new Error('google-oauth-web-only'));
-  }
-
-  const existingApi = getGoogleOauthApi();
-  if (existingApi) {
-    return Promise.resolve(existingApi);
-  }
-
-  if (!googleOauthScriptPromise) {
-    googleOauthScriptPromise = new Promise((resolve, reject) => {
-      if (typeof document === 'undefined') {
-        reject(new Error('google-oauth-document-unavailable'));
-        return;
-      }
-
-      const handleLoad = () => {
-        const oauthApi = getGoogleOauthApi();
-
-        if (!oauthApi) {
-          reject(new Error('google-oauth-unavailable'));
-          return;
-        }
-
-        resolve(oauthApi);
-      };
-
-      const handleError = () => {
-        reject(new Error('google-oauth-load-failed'));
-      };
-
-      const existingScript = document.getElementById(GOOGLE_OAUTH_SCRIPT_ID);
-      if (existingScript) {
-        existingScript.addEventListener('load', handleLoad, {once: true});
-        existingScript.addEventListener('error', handleError, {once: true});
-        return;
-      }
-
-      const script = document.createElement('script');
-      script.id = GOOGLE_OAUTH_SCRIPT_ID;
-      script.src = 'https://accounts.google.com/gsi/client';
-      script.async = true;
-      script.defer = true;
-      script.onload = handleLoad;
-      script.onerror = handleError;
-      document.head.appendChild(script);
-    }).catch(error => {
-      googleOauthScriptPromise = null;
-      throw error;
-    });
-  }
-
-  return googleOauthScriptPromise;
-};
-
-const requestGoogleAccessToken = async clientId => {
-  const oauthApi = await loadGoogleOauthApi();
-
-  return new Promise((resolve, reject) => {
-    const tokenClient = oauthApi.initTokenClient({
-      client_id: clientId,
-      scope: GOOGLE_OAUTH_SCOPE,
-      callback: tokenResponse => {
-        if (tokenResponse?.error) {
-          reject(
-            new Error(tokenResponse.error_description || tokenResponse.error),
-          );
-          return;
-        }
-
-        if (!tokenResponse?.access_token) {
-          reject(new Error('google-access-token-missing'));
-          return;
-        }
-
-        resolve(tokenResponse.access_token);
-      },
-      error_callback: oauthError => {
-        reject(
-          new Error(
-            oauthError?.message ||
-              oauthError?.type ||
-              'google-oauth-request-failed',
-          ),
-        );
-      },
-    });
-
-    tokenClient.requestAccessToken({prompt: 'select_account'});
-  });
-};
-
-const resolveGoogleOauthErrorMessage = error => {
-  const errorMessage = String(error?.message || '')
-    .trim()
-    .toLowerCase();
-
-  if (errorMessage === 'popup_closed') {
-    return 'A janela do Google foi fechada antes da autenticacao.';
-  }
-
-  if (
-    errorMessage === 'google-oauth-load-failed' ||
-    errorMessage === 'google-oauth-unavailable'
-  ) {
-    return 'Nao foi possivel carregar a autenticacao do Google.';
-  }
-
-  if (errorMessage === 'google-access-token-missing') {
-    return 'O Google nao retornou um token de acesso valido.';
-  }
-
-  return error?.message || 'Nao foi possivel entrar com Google.';
-};
+import {
+  normalizeRedirectParams,
+  getSignInPostLoginRoute,
+} from '../../utils/redirectParams';
+import {
+  loadGoogleOauthApi,
+  requestGoogleAccessToken,
+  getGoogleSignInErrorMessage,
+} from '../../utils/googleOauth';
 
 export default function SignIn({navigation}) {
   const route = useRoute();
@@ -326,20 +115,20 @@ export default function SignIn({navigation}) {
   useFocusEffect(
     useCallback(() => {
       if (actions.isLogged()) {
-        const postLoginRoute = getPostLoginRoute(navigation, route);
+        const postLoginRoute = getSignInPostLoginRoute(navigation, route);
         if (postLoginRoute) {
           navigation.reset({
             index: 0,
             routes: [
               {
                 name: postLoginRoute,
-                ...(redirectParams ? {params: redirectParams} : {}),
+                params: redirectParams,
               },
             ],
           });
         }
       }
-    }, [actions, navigation, redirectParams, route]),
+    }, [actions, navigation, route, redirectParams]),
   );
 
   const validateForm = () => {
@@ -362,14 +151,14 @@ export default function SignIn({navigation}) {
     setErrors({});
     try {
       await actions.signIn({username, password});
-      const postLoginRoute = getPostLoginRoute(navigation, route);
+      const postLoginRoute = getSignInPostLoginRoute(navigation, route);
       if (postLoginRoute) {
         navigation.reset({
           index: 0,
           routes: [
             {
               name: postLoginRoute,
-              ...(redirectParams ? {params: redirectParams} : {}),
+              params: redirectParams,
             },
           ],
         });
@@ -402,14 +191,14 @@ export default function SignIn({navigation}) {
       const accessToken = await requestGoogleAccessToken(googleClientId);
       await actions.gSignIn({access_token: accessToken});
 
-      const postLoginRoute = getPostLoginRoute(navigation, route);
+      const postLoginRoute = getSignInPostLoginRoute(navigation, route);
       if (postLoginRoute) {
         navigation.reset({
           index: 0,
           routes: [
             {
               name: postLoginRoute,
-              ...(redirectParams ? {params: redirectParams} : {}),
+              params: redirectParams,
             },
           ],
         });
@@ -702,4 +491,3 @@ export default function SignIn({navigation}) {
 
   return content;
 }
-// TODO(store-first): quando este arquivo for mexido, mover a leitura para stores, remover api.fetch e evitar repassar dados em objetos quando o store ja resolver isso.

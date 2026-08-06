@@ -1,76 +1,13 @@
-import React, {useState, useCallback, useEffect} from 'react';
+import React, {useState, useCallback, useEffect, useRef} from 'react';
 import {useNavigation} from '@react-navigation/native';
 import {useStore} from '@store';
 import {isPublicRoute} from '@controleonline/ui-login/src/react/router/publicRoutes';
-
-// Keys that must never be forwarded as post-login route params.
-// `store` is legacy ProfilePage initialParams noise that produced
-// /sign-in-page?redirectRoute=ProfilePage&redirectParams={"store":"auth"}.
-const REDIRECT_PARAM_BLACKLIST = new Set([
-  'showBottomCart',
-  'redirectRoute',
-  'redirectParams',
-  'store',
-]);
-
-const sanitizeParamObject = params => {
-  if (!params || typeof params !== 'object' || Array.isArray(params)) {
-    return undefined;
-  }
-
-  const cleaned = Object.entries(params).reduce((acc, [key, value]) => {
-    if (!REDIRECT_PARAM_BLACKLIST.has(key) && value !== undefined) {
-      acc[key] = value;
-    }
-    return acc;
-  }, {});
-
-  return Object.keys(cleaned).length > 0 ? cleaned : undefined;
-};
-
-const getRedirectParams = route => {
-  const cleaned = sanitizeParamObject(route?.params);
-  return cleaned ? JSON.stringify(cleaned) : undefined;
-};
-
-const normalizeRedirectParams = redirectParams => {
-  if (!redirectParams) {
-    return undefined;
-  }
-
-  if (typeof redirectParams === 'string') {
-    try {
-      const parsedParams = JSON.parse(redirectParams);
-      return sanitizeParamObject(parsedParams);
-    } catch {
-      return undefined;
-    }
-  }
-
-  return sanitizeParamObject(redirectParams);
-};
-
-const resolveRedirectRoute = (routeNames, redirectRoute) => {
-  if (!redirectRoute || redirectRoute === 'SignInPage') {
-    return null;
-  }
-
-  if (routeNames.includes(redirectRoute)) {
-    return redirectRoute;
-  }
-
-  const redirectAliases = {
-    ProfilePage: 'ShopProfilePage',
-    ShopProfileLegacyPage: 'ShopProfilePage',
-  };
-  const aliasedRoute = redirectAliases[redirectRoute];
-
-  if (aliasedRoute && routeNames.includes(aliasedRoute)) {
-    return aliasedRoute;
-  }
-
-  return null;
-};
+import {
+  getRedirectParams,
+  normalizeRedirectParams,
+  resolveRedirectRoute,
+  getDefaultPostLoginRoute,
+} from '../utils/redirectParams';
 
 const CheckLogin = ({}) => {
   const navigation = useNavigation();
@@ -80,15 +17,12 @@ const CheckLogin = ({}) => {
   const {isLogged, sessionChecked} = authGetters;
   const [currentRoute, setCurrentRoute] = useState(null);
   const currentRouteName = currentRoute?.name || '';
+  const navigatingRef = useRef(false);
 
-  const getPostLoginRoute = useCallback(() => {
-    const routeNames = navigation?.getState?.()?.routeNames || [];
-    if (routeNames.includes('HomePage')) return 'HomePage';
-    if (routeNames.includes('CrmIndex')) return 'CrmIndex';
-    if (routeNames.includes('OrderHistoryPage')) return 'OrderHistoryPage';
-    if (routeNames.includes('ShopIndex')) return 'ShopIndex';
-    return routeNames.find(name => name !== 'SignInPage') || null;
-  }, [navigation]);
+  const getPostLoginRoute = useCallback(
+    () => getDefaultPostLoginRoute(navigation),
+    [navigation],
+  );
 
   useEffect(() => {
     if (sessionChecked) {
@@ -113,21 +47,40 @@ const CheckLogin = ({}) => {
 
   useEffect(() => {
     if (!sessionChecked || !currentRouteName) return;
+    if (navigatingRef.current) return;
 
     if (!isLogged && !isPublicRoute(currentRouteName)) {
-      const redirectParams = getRedirectParams(currentRoute);
+      const preferClean =
+        typeof authActions.consumePreferCleanSignIn === 'function'
+          ? authActions.consumePreferCleanSignIn()
+          : false;
 
-      navigation.reset({
-        index: 0,
-        routes: [
-          {
-            name: 'SignInPage',
-            params: {
-              redirectRoute: currentRouteName,
-              ...(redirectParams ? {redirectParams} : {}),
+      navigatingRef.current = true;
+
+      if (preferClean) {
+        navigation.reset({
+          index: 0,
+          routes: [{name: 'SignInPage'}],
+        });
+      } else {
+        const redirectParams = getRedirectParams(currentRoute);
+
+        navigation.reset({
+          index: 0,
+          routes: [
+            {
+              name: 'SignInPage',
+              params: {
+                redirectRoute: currentRouteName,
+                ...(redirectParams ? {redirectParams} : {}),
+              },
             },
-          },
-        ],
+          ],
+        });
+      }
+
+      requestAnimationFrame(() => {
+        navigatingRef.current = false;
       });
       return;
     }
@@ -147,6 +100,7 @@ const CheckLogin = ({}) => {
         currentRoute?.params?.redirectParams,
       );
 
+      navigatingRef.current = true;
       navigation.reset({
         index: 0,
         routes: [
@@ -156,8 +110,12 @@ const CheckLogin = ({}) => {
           },
         ],
       });
+      requestAnimationFrame(() => {
+        navigatingRef.current = false;
+      });
     }
   }, [
+    authActions,
     currentRoute,
     currentRouteName,
     getPostLoginRoute,
