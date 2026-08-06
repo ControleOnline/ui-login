@@ -145,7 +145,12 @@ const CheckLogin = ({}) => {
       if (preferClean) {
         navigation.reset({
           index: 0,
-          routes: [{name: 'SignInPage'}],
+          routes: [
+            {
+              name: 'SignInPage',
+              params: {redirectRoute: 'HomePage'},
+            },
+          ],
         });
       } else {
         const redirectParams = getRedirectParams(currentRoute);

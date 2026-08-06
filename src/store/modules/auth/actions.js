@@ -1,7 +1,7 @@
 import { api } from "@controleonline/ui-common/src/api";
 import * as types from "./mutation_types";
 
-// Intentional logout must land on a clean SignInPage (no redirectRoute).
+// Intentional logout must land on SignInPage with HomePage as post-login route.
 // CheckLogin races while still on the protected route and would otherwise
 // build /sign-in-page?redirectRoute=ProfilePage and trap post-login.
 let preferCleanSignIn = false;
