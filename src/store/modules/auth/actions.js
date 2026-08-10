@@ -1,6 +1,17 @@
 import { api } from "@controleonline/ui-common/src/api";
 import * as types from "./mutation_types";
 
+// Intentional logout must land on SignInPage with HomePage as post-login route.
+// CheckLogin races while still on the protected route and would otherwise
+// build /sign-in-page?redirectRoute=ProfilePage and trap post-login.
+let preferCleanSignIn = false;
+
+export const consumePreferCleanSignIn = () => {
+  const value = preferCleanSignIn;
+  preferCleanSignIn = false;
+  return value;
+};
+
 const clearStoredSession = (commit) => {
   localStorage.removeItem("session");
   commit(types.LOGIN_SET_USER, null);
@@ -32,9 +43,6 @@ export const signIn = ({ commit }, values) => {
   return api
     .fetch("token", { method: "POST", body: values })
     .then((data) => {
-      
-      // AleMac // 26/11/2025
-      // validação REAL da resposta da API
       if (!data || data.error) {
         throw new Error(data.error || "Credenciais inválidas");
       }
@@ -42,7 +50,6 @@ export const signIn = ({ commit }, values) => {
         throw new Error("Credenciais inválidas");
       }
 
-      // só loga se passou em todas as validações
       logIn({ commit }, data);
 
       return data;
@@ -154,6 +161,7 @@ export const signUp = ({ commit }, values) => {
 };
 
 export const logIn = ({ commit }, user = null) => {
+  preferCleanSignIn = false;
   localStorage.setItem("session", JSON.stringify(user));
   commit(types.LOGIN_SET_USER, user);
   commit(types.LOGIN_SET_IS_LOGGED, user?.active ? true : false);
@@ -170,6 +178,8 @@ export const getLoggedUser = ({ state }) => {
 };
 
 export const logOut = ({ commit }) => {
+  preferCleanSignIn = true;
+
   let clearManagerPushTokenPromise = null;
 
   if (typeof global.clearManagerPushTokenOnLogout === 'function') {

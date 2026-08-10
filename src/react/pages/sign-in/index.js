@@ -36,9 +36,39 @@ import DefaultFile from '@controleonline/ui-default/src/react/components/files/D
 
 import {createStyles, resolveSignInTheme} from './index.styles';
 
+// Profile post-login redirects caused a loop on
+// /sign-in-page?redirectRoute=ProfilePage after logout/login.
+const SKIP_POST_LOGIN_REDIRECTS = new Set([
+  'ProfilePage',
+  'ShopProfilePage',
+  'ShopProfileLegacyPage',
+]);
+
+const getWebQueryParam = paramName => {
+  if (Platform.OS !== 'web' || typeof window === 'undefined') {
+    return undefined;
+  }
+
+  return new URLSearchParams(window.location.search).get(paramName) || undefined;
+};
+
+const getRedirectRouteParam = route =>
+  route?.params?.redirectRoute || getWebQueryParam('redirectRoute');
+
+const getRedirectParamsParam = route =>
+  route?.params?.redirectParams || getWebQueryParam('redirectParams');
+
 const resolveRedirectRoute = (routeNames, redirectRoute) => {
   if (!redirectRoute || redirectRoute === 'SignInPage') {
     return null;
+  }
+
+  if (SKIP_POST_LOGIN_REDIRECTS.has(redirectRoute)) {
+    return null;
+  }
+
+  if (redirectRoute === 'HomePage') {
+    return 'HomePage';
   }
 
   if (routeNames.includes(redirectRoute)) {
@@ -51,7 +81,11 @@ const resolveRedirectRoute = (routeNames, redirectRoute) => {
   };
   const aliasedRoute = redirectAliases[redirectRoute];
 
-  if (aliasedRoute && routeNames.includes(aliasedRoute)) {
+  if (
+    aliasedRoute &&
+    !SKIP_POST_LOGIN_REDIRECTS.has(aliasedRoute) &&
+    routeNames.includes(aliasedRoute)
+  ) {
     return aliasedRoute;
   }
 
@@ -62,7 +96,7 @@ const getPostLoginRoute = (navigation, route) => {
   const routeNames = navigation?.getState?.()?.routeNames || [];
   const resolvedRedirectRoute = resolveRedirectRoute(
     routeNames,
-    route?.params?.redirectRoute,
+    getRedirectRouteParam(route),
   );
 
   if (resolvedRedirectRoute) {
@@ -74,6 +108,31 @@ const getPostLoginRoute = (navigation, route) => {
   if (routeNames.includes('OrderHistoryPage')) return 'OrderHistoryPage';
   if (routeNames.includes('ShopIndex')) return 'ShopIndex';
   return routeNames.find(name => name !== 'SignInPage') || null;
+};
+
+const goToPostLoginRoute = (navigation, postLoginRoute, redirectParams) => {
+  if (!postLoginRoute) {
+    return;
+  }
+
+  if (
+    Platform.OS === 'web' &&
+    postLoginRoute === 'HomePage' &&
+    typeof window !== 'undefined'
+  ) {
+    window.location.replace('/');
+    return;
+  }
+
+  navigation.reset({
+    index: 0,
+    routes: [
+      {
+        name: postLoginRoute,
+        params: redirectParams,
+      },
+    ],
+  });
 };
 
 const normalizeRedirectParams = redirectParams => {
@@ -242,7 +301,7 @@ export default function SignIn({navigation}) {
   const themeStore = useStore('theme');
   const actions = authStore.actions;
   const redirectParams = useMemo(
-    () => normalizeRedirectParams(route?.params?.redirectParams),
+    () => normalizeRedirectParams(getRedirectParamsParam(route)),
     [route?.params?.redirectParams],
   );
   const peopleStore = useStore('people');
@@ -305,19 +364,9 @@ export default function SignIn({navigation}) {
     useCallback(() => {
       if (actions.isLogged()) {
         const postLoginRoute = getPostLoginRoute(navigation, route);
-        if (postLoginRoute) {
-          navigation.reset({
-            index: 0,
-            routes: [
-              {
-                name: postLoginRoute,
-                params: redirectParams,
-              },
-            ],
-          });
-        }
+        goToPostLoginRoute(navigation, postLoginRoute, redirectParams);
       }
-    }, [actions, navigation, route]),
+    }, [actions, navigation, route, redirectParams]),
   );
 
   const validateForm = () => {
@@ -341,17 +390,7 @@ export default function SignIn({navigation}) {
     try {
       await actions.signIn({username, password});
       const postLoginRoute = getPostLoginRoute(navigation, route);
-      if (postLoginRoute) {
-        navigation.reset({
-          index: 0,
-          routes: [
-            {
-              name: postLoginRoute,
-              params: redirectParams,
-            },
-          ],
-        });
-      }
+      goToPostLoginRoute(navigation, postLoginRoute, redirectParams);
     } catch (error) {
       showError(
         error.message ||
@@ -381,17 +420,7 @@ export default function SignIn({navigation}) {
       await actions.gSignIn({access_token: accessToken});
 
       const postLoginRoute = getPostLoginRoute(navigation, route);
-      if (postLoginRoute) {
-        navigation.reset({
-          index: 0,
-          routes: [
-            {
-              name: postLoginRoute,
-              params: redirectParams,
-            },
-          ],
-        });
-      }
+      goToPostLoginRoute(navigation, postLoginRoute, redirectParams);
     } catch (error) {
       showError(resolveGoogleOauthErrorMessage(error));
     } finally {
