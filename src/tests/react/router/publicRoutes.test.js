@@ -17,6 +17,8 @@ describe('ui-login public routes', () => {
     expect(isPublicRoute('ConfirmAccountPage')).toBe(true)
     expect(PUBLIC_ROUTES.has('ResetPasswordPage')).toBe(true)
     expect(isPublicRoute('ResetPasswordPage')).toBe(true)
+    expect(PUBLIC_ROUTES.has('OauthDiscordCallbackPage')).toBe(true)
+    expect(isPublicRoute('OauthDiscordCallbackPage')).toBe(true)
     expect(isPublicRoute('ShopIndex')).toBe(true)
     expect(isPublicRoute('ShopProductPage')).toBe(true)
     expect(isPublicRoute('ShopLoyaltyPage')).toBe(true)

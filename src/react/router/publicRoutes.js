@@ -5,6 +5,7 @@ export const PUBLIC_ROUTES = new Set([
   'CreateAccount',
   'ConfirmAccountPage',
   'ResetPasswordPage',
+  'OauthDiscordCallbackPage',
   'ShopIndex',
   'ShopFranchiseLocatorPage',
   'ShopSearchPage',

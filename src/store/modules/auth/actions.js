@@ -132,6 +132,36 @@ export const gSignIn = ({ commit }, values) => {
     });
 };
 
+export const dSignIn = ({ commit }, values) => {
+  commit(types.LOGIN_SET_ERROR, "");
+  commit(types.LOGIN_SET_ISLOADING, true);
+
+  return api
+    .fetch("oauth/discord/return", { method: "POST", params: values })
+    .then((response) => {
+      const user =
+        response?.response?.data ?? response?.data ?? response ?? null;
+
+      if (!user || user.error) {
+        throw new Error(user?.error || "Credenciais inválidas");
+      }
+
+      if ((user.active !== 1 && user.active !== true) || !user.api_key) {
+        throw new Error("Credenciais inválidas");
+      }
+
+      logIn({ commit }, user);
+      return user;
+    })
+    .catch((e) => {
+      commit(types.LOGIN_SET_ERROR, e.message);
+      throw e;
+    })
+    .finally(() => {
+      commit(types.LOGIN_SET_ISLOADING, false);
+    });
+};
+
 export const signUp = ({ commit }, values) => {
   commit(types.LOGIN_SET_ERROR, "");
   commit(types.LOGIN_SET_ISLOADING);
