@@ -139,3 +139,46 @@ describe('auth restoreSession', () => {
     expect(commit).toHaveBeenCalledWith(types.LOGIN_SET_ISLOADING, false)
   })
 })
+
+describe('auth dSignIn', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+    global.localStorage = {
+      getItem: jest.fn(),
+      setItem: jest.fn(),
+      removeItem: jest.fn(),
+      clear: jest.fn(),
+    }
+  })
+
+  it('posts access_token to oauth/discord/return and logs the user in', async () => {
+    const user = {
+      id: 11,
+      people: 22,
+      api_key: 'discord-key',
+      active: 1,
+    }
+
+    api.fetch.mockResolvedValueOnce({
+      response: {
+        data: user,
+        success: true,
+      },
+    })
+
+    const commit = jest.fn()
+    const result = await actions.dSignIn({commit}, {access_token: 'tok-discord'})
+
+    expect(api.fetch).toHaveBeenCalledWith('oauth/discord/return', {
+      method: 'POST',
+      params: {access_token: 'tok-discord'},
+    })
+    expect(result).toEqual(user)
+    expect(global.localStorage.setItem).toHaveBeenCalledWith(
+      'session',
+      JSON.stringify(user),
+    )
+    expect(commit).toHaveBeenCalledWith(types.LOGIN_SET_USER, user)
+    expect(commit).toHaveBeenCalledWith(types.LOGIN_SET_IS_LOGGED, true)
+  })
+})
