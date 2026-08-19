@@ -42,3 +42,17 @@ describe('redirectParams', () => {
     ).toBe('HomePage');
   });
 });
+
+  it('always returns HomePage when no redirect and empty routeNames', () => {
+    const navigation = {getState: () => ({routeNames: ['SignInPage']})};
+    expect(getSignInPostLoginRoute(navigation, {params: {}})).toBe('HomePage');
+    expect(getDefaultPostLoginRoute(navigation)).toBe('HomePage');
+  });
+
+  it('getSignInPostLoginRoute ignores missing redirectRoute and goes Home', () => {
+    const navigation = {
+      getState: () => ({routeNames: ['SignInPage', 'HomePage', 'CrmIndex']}),
+    };
+    expect(getSignInPostLoginRoute(navigation, {})).toBe('HomePage');
+    expect(getSignInPostLoginRoute(navigation, {params: null})).toBe('HomePage');
+  });

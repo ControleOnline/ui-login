@@ -334,18 +334,17 @@ export default function SignIn({navigation}) {
     setErrors({});
     try {
       await actions.signIn({username, password});
-      const postLoginRoute = getSignInPostLoginRoute(navigation, route);
-      if (postLoginRoute) {
-        navigation.reset({
-          index: 0,
-          routes: [
-            {
-              name: postLoginRoute,
-              params: redirectParams,
-            },
-          ],
-        });
-      }
+      const postLoginRoute =
+        getSignInPostLoginRoute(navigation, route) || 'HomePage';
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: postLoginRoute,
+            ...(redirectParams ? {params: redirectParams} : {}),
+          },
+        ],
+      });
     } catch (error) {
       showError(
         error.message ||
@@ -374,18 +373,17 @@ export default function SignIn({navigation}) {
       const accessToken = await requestGoogleAccessToken(googleClientId);
       await actions.gSignIn({access_token: accessToken});
 
-      const postLoginRoute = getSignInPostLoginRoute(navigation, route);
-      if (postLoginRoute) {
-        navigation.reset({
-          index: 0,
-          routes: [
-            {
-              name: postLoginRoute,
-              params: redirectParams,
-            },
-          ],
-        });
-      }
+      const postLoginRoute =
+        getSignInPostLoginRoute(navigation, route) || 'HomePage';
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: postLoginRoute,
+            ...(redirectParams ? {params: redirectParams} : {}),
+          },
+        ],
+      });
     } catch (error) {
       showError(resolveGoogleOauthErrorMessage(error));
     } finally {
@@ -406,8 +404,17 @@ export default function SignIn({navigation}) {
       const accessToken = await requestDiscordAccessToken(discordClientId);
       await actions.dSignIn({access_token: accessToken});
 
-      const postLoginRoute = getPostLoginRoute(navigation, route);
-      goToPostLoginRoute(navigation, postLoginRoute, redirectParams);
+      const postLoginRoute =
+        getSignInPostLoginRoute(navigation, route) || 'HomePage';
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: postLoginRoute,
+            ...(redirectParams ? {params: redirectParams} : {}),
+          },
+        ],
+      });
     } catch (error) {
       showError(resolveDiscordOauthErrorMessage(error));
     } finally {
