@@ -181,6 +181,9 @@ export const createStyles = (theme = resolveSignInTheme()) =>
       flexDirection: 'row',
       paddingHorizontal: 16,
     },
+    oauthButtonSpacing: {
+      marginTop: 12,
+    },
     googleButtonDisabled: {
       opacity: theme.buttonDisabledOpacity,
     },

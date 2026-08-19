@@ -1,14 +1,5 @@
 /*
- * Contract imported from AGENTS.md
- * ## Escopo
- * - Modulo de autenticacao e entrada do usuario.
- * - Cobre login, criacao de conta, validacao de sessao e fluxo inicial de acesso.
- *
- * ## Estado
- * - Este modulo tem implementacao ativa em `src/react` e deve constar em novos prompts.
- *
- * ## Quando usar
- * - Prompts sobre login, autenticacao, sessao, create account e guardas de acesso.
+ * Auth / Sign-in entry module. See AGENTS.md for full contract.
  */
 
 import React, {useState, useCallback, useEffect, useMemo} from 'react';
@@ -32,257 +23,192 @@ import {api} from '@controleonline/ui-common/src/api';
 import {useMessage} from '@controleonline/ui-common/src/react/components/MessageService';
 import {resolveFileImageUrl} from '@controleonline/ui-common/src/react/utils/fileUrl';
 import {resolveCompanyGoogleOauthClientId} from '@controleonline/ui-common/src/utils/oauth';
+
+const OAUTH_DISCORD_CLIENT_ID_CONFIG_KEY = 'OAUTH_DISCORD_CLIENT_ID';
+
+const resolveCompanyDiscordOauthClientId = company => {
+  const configs = company?.configs;
+  if (!configs || typeof configs !== 'object' || Array.isArray(configs)) {
+    return '';
+  }
+  const raw = configs[OAUTH_DISCORD_CLIENT_ID_CONFIG_KEY];
+  if (raw === null || raw === undefined) {
+    return '';
+  }
+  if (typeof raw === 'string') {
+    const trimmed = raw.trim();
+    if (!trimmed) {
+      return '';
+    }
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (typeof parsed === 'string') {
+        return parsed.trim();
+      }
+    } catch {}
+    return trimmed;
+  }
+  return String(raw).trim();
+};
 import DefaultFile from '@controleonline/ui-default/src/react/components/files/DefaultFile';
 
 import {createStyles, resolveSignInTheme} from './index.styles';
+import {
+  normalizeRedirectParams,
+  getSignInPostLoginRoute,
+} from '../../utils/redirectParams';
+import {
+  loadGoogleOauthApi,
+  requestGoogleAccessToken,
+  getGoogleSignInErrorMessage,
+} from '../../utils/googleOauth';
 
-// Profile post-login redirects caused a loop on
-// /sign-in-page?redirectRoute=ProfilePage after logout/login.
-const SKIP_POST_LOGIN_REDIRECTS = new Set([
-  'ProfilePage',
-  'ShopProfilePage',
-  'ShopProfileLegacyPage',
-]);
+const DISCORD_OAUTH_AUTHORIZE_URL = 'https://discord.com/api/oauth2/authorize';
+const DISCORD_OAUTH_SCOPE = 'identify email';
+const DISCORD_OAUTH_POPUP_NAME = 'discord-oauth-popup';
+const DISCORD_OAUTH_MESSAGE_TYPE = 'controleonline-discord-oauth';
 
-const getWebQueryParam = paramName => {
-  if (Platform.OS !== 'web' || typeof window === 'undefined') {
-    return undefined;
-  }
-
-  return new URLSearchParams(window.location.search).get(paramName) || undefined;
-};
-
-const getRedirectRouteParam = route =>
-  route?.params?.redirectRoute || getWebQueryParam('redirectRoute');
-
-const getRedirectParamsParam = route =>
-  route?.params?.redirectParams || getWebQueryParam('redirectParams');
-
-const resolveRedirectRoute = (routeNames, redirectRoute) => {
-  if (!redirectRoute || redirectRoute === 'SignInPage') {
-    return null;
-  }
-
-  if (SKIP_POST_LOGIN_REDIRECTS.has(redirectRoute)) {
-    return null;
-  }
-
-  if (redirectRoute === 'HomePage') {
-    return 'HomePage';
-  }
-
-  if (routeNames.includes(redirectRoute)) {
-    return redirectRoute;
-  }
-
-  const redirectAliases = {
-    ProfilePage: 'ShopProfilePage',
-    ShopProfileLegacyPage: 'ShopProfilePage',
-  };
-  const aliasedRoute = redirectAliases[redirectRoute];
-
-  if (
-    aliasedRoute &&
-    !SKIP_POST_LOGIN_REDIRECTS.has(aliasedRoute) &&
-    routeNames.includes(aliasedRoute)
-  ) {
-    return aliasedRoute;
-  }
-
-  return null;
-};
-
-const getPostLoginRoute = (navigation, route) => {
-  const routeNames = navigation?.getState?.()?.routeNames || [];
-  const resolvedRedirectRoute = resolveRedirectRoute(
-    routeNames,
-    getRedirectRouteParam(route),
-  );
-
-  if (resolvedRedirectRoute) {
-    return resolvedRedirectRoute;
-  }
-
-  if (routeNames.includes('HomePage')) return 'HomePage';
-  if (routeNames.includes('CrmIndex')) return 'CrmIndex';
-  if (routeNames.includes('OrderHistoryPage')) return 'OrderHistoryPage';
-  if (routeNames.includes('ShopIndex')) return 'ShopIndex';
-  return routeNames.find(name => name !== 'SignInPage') || null;
-};
-
-const goToPostLoginRoute = (navigation, postLoginRoute, redirectParams) => {
-  if (!postLoginRoute) {
-    return;
-  }
-
-  if (
-    Platform.OS === 'web' &&
-    postLoginRoute === 'HomePage' &&
-    typeof window !== 'undefined'
-  ) {
-    window.location.replace('/');
-    return;
-  }
-
-  navigation.reset({
-    index: 0,
-    routes: [
-      {
-        name: postLoginRoute,
-        params: redirectParams,
-      },
-    ],
-  });
-};
-
-const normalizeRedirectParams = redirectParams => {
-  if (!redirectParams) {
-    return undefined;
-  }
-
-  if (typeof redirectParams === 'string') {
-    try {
-      const parsedParams = JSON.parse(redirectParams);
-
-      return parsedParams && typeof parsedParams === 'object'
-        ? parsedParams
-        : undefined;
-    } catch {
-      return undefined;
-    }
-  }
-
-  return typeof redirectParams === 'object' ? redirectParams : undefined;
-};
-
-const GOOGLE_OAUTH_SCRIPT_ID = 'google-oauth-client-script';
-const GOOGLE_OAUTH_SCOPE = 'openid email profile';
-
-let googleOauthScriptPromise = null;
-
-const getGoogleOauthApi = () => {
+const getDiscordRedirectUri = () => {
   if (typeof window === 'undefined') {
-    return null;
+    return '';
   }
-
-  return window.google?.accounts?.oauth2 || null;
+  // Static callback path on the same origin; hash fragment carries the token.
+  return `${window.location.origin}/oauth/discord/callback`;
 };
 
-const loadGoogleOauthApi = () => {
-  if (Platform.OS !== 'web') {
-    return Promise.reject(new Error('google-oauth-web-only'));
+const parseDiscordHashParams = hash => {
+  const normalizedHash = String(hash || '').replace(/^#/, '');
+  if (!normalizedHash) {
+    return {};
   }
-
-  const existingApi = getGoogleOauthApi();
-  if (existingApi) {
-    return Promise.resolve(existingApi);
-  }
-
-  if (!googleOauthScriptPromise) {
-    googleOauthScriptPromise = new Promise((resolve, reject) => {
-      if (typeof document === 'undefined') {
-        reject(new Error('google-oauth-document-unavailable'));
-        return;
-      }
-
-      const handleLoad = () => {
-        const oauthApi = getGoogleOauthApi();
-
-        if (!oauthApi) {
-          reject(new Error('google-oauth-unavailable'));
-          return;
-        }
-
-        resolve(oauthApi);
-      };
-
-      const handleError = () => {
-        reject(new Error('google-oauth-load-failed'));
-      };
-
-      const existingScript = document.getElementById(GOOGLE_OAUTH_SCRIPT_ID);
-      if (existingScript) {
-        existingScript.addEventListener('load', handleLoad, {once: true});
-        existingScript.addEventListener('error', handleError, {once: true});
-        return;
-      }
-
-      const script = document.createElement('script');
-      script.id = GOOGLE_OAUTH_SCRIPT_ID;
-      script.src = 'https://accounts.google.com/gsi/client';
-      script.async = true;
-      script.defer = true;
-      script.onload = handleLoad;
-      script.onerror = handleError;
-      document.head.appendChild(script);
-    }).catch(error => {
-      googleOauthScriptPromise = null;
-      throw error;
-    });
-  }
-
-  return googleOauthScriptPromise;
+  return Object.fromEntries(new URLSearchParams(normalizedHash).entries());
 };
 
-const requestGoogleAccessToken = async clientId => {
-  const oauthApi = await loadGoogleOauthApi();
+const requestDiscordAccessToken = clientId => {
+  if (Platform.OS !== 'web' || typeof window === 'undefined') {
+    return Promise.reject(new Error('discord-oauth-web-only'));
+  }
+
+  const redirectUri = getDiscordRedirectUri();
+  if (!redirectUri) {
+    return Promise.reject(new Error('discord-redirect-uri-missing'));
+  }
+
+  const authUrl = new URL(DISCORD_OAUTH_AUTHORIZE_URL);
+  authUrl.searchParams.set('client_id', clientId);
+  authUrl.searchParams.set('response_type', 'token');
+  authUrl.searchParams.set('scope', DISCORD_OAUTH_SCOPE);
+  authUrl.searchParams.set('redirect_uri', redirectUri);
+  authUrl.searchParams.set('prompt', 'none');
 
   return new Promise((resolve, reject) => {
-    const tokenClient = oauthApi.initTokenClient({
-      client_id: clientId,
-      scope: GOOGLE_OAUTH_SCOPE,
-      callback: tokenResponse => {
-        if (tokenResponse?.error) {
-          reject(
-            new Error(tokenResponse.error_description || tokenResponse.error),
+    const width = 520;
+    const height = 700;
+    const left = window.screenX + Math.max(0, (window.outerWidth - width) / 2);
+    const top = window.screenY + Math.max(0, (window.outerHeight - height) / 2);
+    const features = `width=${width},height=${height},left=${left},top=${top},menubar=no,toolbar=no,status=no,resizable=yes,scrollbars=yes`;
+
+    const popup = window.open(authUrl.toString(), DISCORD_OAUTH_POPUP_NAME, features);
+    if (!popup) {
+      reject(new Error('discord-popup-blocked'));
+      return;
+    }
+
+    let settled = false;
+    const settle = (fn, value) => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      window.removeEventListener('message', onMessage);
+      clearInterval(pollTimer);
+      clearTimeout(timeoutTimer);
+      try {
+        popup.close();
+      } catch {}
+      fn(value);
+    };
+
+    const onMessage = event => {
+      if (event.origin !== window.location.origin) {
+        return;
+      }
+      const payload = event.data;
+      if (!payload || payload.type !== DISCORD_OAUTH_MESSAGE_TYPE) {
+        return;
+      }
+      if (payload.error) {
+        settle(reject, new Error(payload.error));
+        return;
+      }
+      if (!payload.access_token) {
+        settle(reject, new Error('discord-access-token-missing'));
+        return;
+      }
+      settle(resolve, payload.access_token);
+    };
+
+    window.addEventListener('message', onMessage);
+
+    // Fallback: poll popup location hash when same-origin redirect lands.
+    const pollTimer = setInterval(() => {
+      try {
+        if (popup.closed) {
+          settle(reject, new Error('popup_closed'));
+          return;
+        }
+        const popupUrl = popup.location.href;
+        if (!popupUrl || popupUrl === 'about:blank') {
+          return;
+        }
+        if (!popupUrl.startsWith(window.location.origin)) {
+          return;
+        }
+        const hashParams = parseDiscordHashParams(popup.location.hash);
+        if (hashParams.access_token) {
+          settle(resolve, hashParams.access_token);
+          return;
+        }
+        if (hashParams.error) {
+          settle(
+            reject,
+            new Error(hashParams.error_description || hashParams.error),
           );
-          return;
         }
+      } catch {
+        // Cross-origin while still on discord.com — ignore until redirect.
+      }
+    }, 400);
 
-        if (!tokenResponse?.access_token) {
-          reject(new Error('google-access-token-missing'));
-          return;
-        }
-
-        resolve(tokenResponse.access_token);
-      },
-      error_callback: oauthError => {
-        reject(
-          new Error(
-            oauthError?.message ||
-              oauthError?.type ||
-              'google-oauth-request-failed',
-          ),
-        );
-      },
-    });
-
-    tokenClient.requestAccessToken({prompt: 'select_account'});
+    const timeoutTimer = setTimeout(() => {
+      settle(reject, new Error('discord-oauth-timeout'));
+    }, 120000);
   });
 };
 
-const resolveGoogleOauthErrorMessage = error => {
+const resolveDiscordOauthErrorMessage = error => {
   const errorMessage = String(error?.message || '')
     .trim()
     .toLowerCase();
 
   if (errorMessage === 'popup_closed') {
-    return 'A janela do Google foi fechada antes da autenticacao.';
+    return 'A janela do Discord foi fechada antes da autenticacao.';
   }
-
-  if (
-    errorMessage === 'google-oauth-load-failed' ||
-    errorMessage === 'google-oauth-unavailable'
-  ) {
-    return 'Nao foi possivel carregar a autenticacao do Google.';
+  if (errorMessage === 'discord-popup-blocked') {
+    return 'O navegador bloqueou a janela de autenticacao do Discord.';
   }
-
-  if (errorMessage === 'google-access-token-missing') {
-    return 'O Google nao retornou um token de acesso valido.';
+  if (errorMessage === 'discord-oauth-web-only') {
+    return 'Login com Discord disponivel apenas na versao web.';
   }
-
-  return error?.message || 'Nao foi possivel entrar com Google.';
+  if (errorMessage === 'discord-access-token-missing') {
+    return 'O Discord nao retornou um token de acesso valido.';
+  }
+  if (errorMessage === 'discord-oauth-timeout') {
+    return 'Tempo esgotado ao autenticar com Discord.';
+  }
+  return error?.message || 'Nao foi possivel entrar com Discord.';
 };
+
 
 export default function SignIn({navigation}) {
   const route = useRoute();
@@ -291,6 +217,7 @@ export default function SignIn({navigation}) {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isDiscordLoading, setIsDiscordLoading] = useState(false);
   const [isRecovering, setIsRecovering] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
@@ -301,7 +228,7 @@ export default function SignIn({navigation}) {
   const themeStore = useStore('theme');
   const actions = authStore.actions;
   const redirectParams = useMemo(
-    () => normalizeRedirectParams(getRedirectParamsParam(route)),
+    () => normalizeRedirectParams(route?.params?.redirectParams),
     [route?.params?.redirectParams],
   );
   const peopleStore = useStore('people');
@@ -323,13 +250,21 @@ export default function SignIn({navigation}) {
     return {};
   }, [currentCompany, defaultCompany]);
 
-  const googleClientId = useMemo(
+    const googleClientId = useMemo(
     () =>
       resolveCompanyGoogleOauthClientId(defaultCompany) ||
       resolveCompanyGoogleOauthClientId(currentCompany),
     [currentCompany, defaultCompany],
   );
+  const discordClientId = useMemo(
+    () =>
+      resolveCompanyDiscordOauthClientId(defaultCompany) ||
+      resolveCompanyDiscordOauthClientId(currentCompany),
+    [currentCompany, defaultCompany],
+  );
   const canUseGoogleLogin = Platform.OS === 'web' && !!googleClientId;
+  const canUseDiscordLogin = Platform.OS === 'web' && !!discordClientId;
+  const canUseOauthLogin = canUseGoogleLogin || canUseDiscordLogin;
   const iconFile = brandCompany?.icon || null;
   const logoFile = brandCompany?.logo || null;
   const backgroundFile = brandCompany?.theme?.background || null;
@@ -363,8 +298,18 @@ export default function SignIn({navigation}) {
   useFocusEffect(
     useCallback(() => {
       if (actions.isLogged()) {
-        const postLoginRoute = getPostLoginRoute(navigation, route);
-        goToPostLoginRoute(navigation, postLoginRoute, redirectParams);
+        const postLoginRoute = getSignInPostLoginRoute(navigation, route);
+        if (postLoginRoute) {
+          navigation.reset({
+            index: 0,
+            routes: [
+              {
+                name: postLoginRoute,
+                params: redirectParams,
+              },
+            ],
+          });
+        }
       }
     }, [actions, navigation, route, redirectParams]),
   );
@@ -389,8 +334,17 @@ export default function SignIn({navigation}) {
     setErrors({});
     try {
       await actions.signIn({username, password});
-      const postLoginRoute = getPostLoginRoute(navigation, route);
-      goToPostLoginRoute(navigation, postLoginRoute, redirectParams);
+      const postLoginRoute =
+        getSignInPostLoginRoute(navigation, route) || 'HomePage';
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: postLoginRoute,
+            ...(redirectParams ? {params: redirectParams} : {}),
+          },
+        ],
+      });
     } catch (error) {
       showError(
         error.message ||
@@ -419,12 +373,52 @@ export default function SignIn({navigation}) {
       const accessToken = await requestGoogleAccessToken(googleClientId);
       await actions.gSignIn({access_token: accessToken});
 
-      const postLoginRoute = getPostLoginRoute(navigation, route);
-      goToPostLoginRoute(navigation, postLoginRoute, redirectParams);
+      const postLoginRoute =
+        getSignInPostLoginRoute(navigation, route) || 'HomePage';
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: postLoginRoute,
+            ...(redirectParams ? {params: redirectParams} : {}),
+          },
+        ],
+      });
     } catch (error) {
       showError(resolveGoogleOauthErrorMessage(error));
     } finally {
       setIsGoogleLoading(false);
+    }
+  };
+
+  const handleDiscordSignIn = async () => {
+    if (!discordClientId) {
+      showError('Login com Discord nao configurado para esta empresa.');
+      return;
+    }
+
+    setIsDiscordLoading(true);
+    setErrors({});
+
+    try {
+      const accessToken = await requestDiscordAccessToken(discordClientId);
+      await actions.dSignIn({access_token: accessToken});
+
+      const postLoginRoute =
+        getSignInPostLoginRoute(navigation, route) || 'HomePage';
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: postLoginRoute,
+            ...(redirectParams ? {params: redirectParams} : {}),
+          },
+        ],
+      });
+    } catch (error) {
+      showError(resolveDiscordOauthErrorMessage(error));
+    } finally {
+      setIsDiscordLoading(false);
     }
   };
 
@@ -574,7 +568,7 @@ export default function SignIn({navigation}) {
             <TouchableOpacity
               style={styles.loginButton}
               onPress={handleSignIn}
-              disabled={isLoading || isGoogleLoading}>
+              disabled={isLoading || isGoogleLoading || isDiscordLoading}>
               {isLoading ? (
                 <ActivityIndicator color={theme.buttonText} />
               ) : (
@@ -584,7 +578,7 @@ export default function SignIn({navigation}) {
               )}
             </TouchableOpacity>
 
-            {canUseGoogleLogin && (
+            {canUseOauthLogin && (
               <>
                 <View style={styles.oauthDivider}>
                   <View style={styles.oauthDividerLine} />
@@ -594,28 +588,56 @@ export default function SignIn({navigation}) {
                   <View style={styles.oauthDividerLine} />
                 </View>
 
-                <TouchableOpacity
-                  style={[
-                    styles.googleButton,
-                    (isLoading || isGoogleLoading) &&
-                      styles.googleButtonDisabled,
-                  ]}
-                  onPress={handleGoogleSignIn}
-                  disabled={isLoading || isGoogleLoading}>
-                  {isGoogleLoading ? (
-                    <ActivityIndicator color={theme.buttonTextSecondary} />
-                  ) : (
-                    <>
-                      <View style={styles.googleButtonBadge}>
-                        <Text style={styles.googleButtonBadgeText}>G</Text>
-                      </View>
-                      <Text style={styles.googleButtonText}>
-                        {global.t?.t('login', 'message', 'with_google') ||
-                          'Entrar com Google'}
-                      </Text>
-                    </>
-                  )}
-                </TouchableOpacity>
+                {canUseGoogleLogin && (
+                  <TouchableOpacity
+                    style={[
+                      styles.googleButton,
+                      (isLoading || isGoogleLoading || isDiscordLoading) &&
+                        styles.googleButtonDisabled,
+                    ]}
+                    onPress={handleGoogleSignIn}
+                    disabled={isLoading || isGoogleLoading || isDiscordLoading}>
+                    {isGoogleLoading ? (
+                      <ActivityIndicator color={theme.buttonTextSecondary} />
+                    ) : (
+                      <>
+                        <View style={styles.googleButtonBadge}>
+                          <Text style={styles.googleButtonBadgeText}>G</Text>
+                        </View>
+                        <Text style={styles.googleButtonText}>
+                          {global.t?.t('login', 'message', 'with_google') ||
+                            'Entrar com Google'}
+                        </Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                )}
+
+                {canUseDiscordLogin && (
+                  <TouchableOpacity
+                    style={[
+                      styles.googleButton,
+                      canUseGoogleLogin && styles.oauthButtonSpacing,
+                      (isLoading || isGoogleLoading || isDiscordLoading) &&
+                        styles.googleButtonDisabled,
+                    ]}
+                    onPress={handleDiscordSignIn}
+                    disabled={isLoading || isGoogleLoading || isDiscordLoading}>
+                    {isDiscordLoading ? (
+                      <ActivityIndicator color={theme.buttonTextSecondary} />
+                    ) : (
+                      <>
+                        <View style={styles.googleButtonBadge}>
+                          <Text style={styles.googleButtonBadgeText}>D</Text>
+                        </View>
+                        <Text style={styles.googleButtonText}>
+                          {global.t?.t('login', 'message', 'with_discord') ||
+                            'Entrar com Discord'}
+                        </Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                )}
               </>
             )}
 
@@ -709,4 +731,3 @@ export default function SignIn({navigation}) {
 
   return content;
 }
-// TODO(store-first): quando este arquivo for mexido, mover a leitura para stores, remover api.fetch e evitar repassar dados em objetos quando o store ja resolver isso.

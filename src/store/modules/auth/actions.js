@@ -1,7 +1,7 @@
 import { api } from "@controleonline/ui-common/src/api";
 import * as types from "./mutation_types";
 
-// Intentional logout must land on SignInPage with HomePage as post-login route.
+// Intentional logout must land on a clean SignInPage (no redirectRoute).
 // CheckLogin races while still on the protected route and would otherwise
 // build /sign-in-page?redirectRoute=ProfilePage and trap post-login.
 let preferCleanSignIn = false;
@@ -36,6 +36,31 @@ const normalizeStatusResponse = response =>
 
 const fetchPeopleStatus = peopleId => api.fetch(`people/${peopleId}`, {});
 
+
+const resolveAuthErrorMessage = (payloadOrError, fallback = "Credenciais inválidas") => {
+  if (!payloadOrError) return fallback;
+
+  if (typeof payloadOrError === "string") {
+    if (/desativado|disabled|USER_DISABLED/i.test(payloadOrError)) {
+      return "Usuário desativado";
+    }
+    return payloadOrError || fallback;
+  }
+
+  const code = payloadOrError.code || payloadOrError?.response?.code;
+  const error =
+    payloadOrError.error ||
+    payloadOrError.message ||
+    payloadOrError?.response?.error ||
+    payloadOrError?.response?.message;
+
+  if (code === "USER_DISABLED" || /desativado|disabled/i.test(String(error || ""))) {
+    return "Usuário desativado";
+  }
+
+  return error || fallback;
+};
+
 export const signIn = ({ commit }, values) => {
   commit(types.LOGIN_SET_ERROR, "");
   commit(types.LOGIN_SET_ISLOADING);
@@ -44,10 +69,14 @@ export const signIn = ({ commit }, values) => {
     .fetch("token", { method: "POST", body: values })
     .then((data) => {
       if (!data || data.error) {
-        throw new Error(data.error || "Credenciais inválidas");
+        throw new Error(resolveAuthErrorMessage(data, "Credenciais inválidas"));
       }
       if (data.active !== 1 || !data.api_key) {
-        throw new Error("Credenciais inválidas");
+        throw new Error(
+          data.active === 0 || data.active === false
+            ? "Usuário desativado"
+            : "Credenciais inválidas"
+        );
       }
 
       logIn({ commit }, data);
@@ -55,8 +84,9 @@ export const signIn = ({ commit }, values) => {
       return data;
     })
     .catch((e) => {
-      commit(types.LOGIN_SET_ERROR, e.message);
-      throw e;
+      const message = resolveAuthErrorMessage(e, e?.message || "Credenciais inválidas");
+      commit(types.LOGIN_SET_ERROR, message);
+      throw new Error(message);
     })
     .finally(() => {
       commit(types.LOGIN_SET_ISLOADING, false);
@@ -112,20 +142,72 @@ export const gSignIn = ({ commit }, values) => {
       const user =
         response?.response?.data ?? response?.data ?? response ?? null;
 
+      if (response?.response?.success === false) {
+        throw new Error(
+          resolveAuthErrorMessage(response.response, "Credenciais inválidas")
+        );
+      }
+
       if (!user || user.error) {
-        throw new Error(user?.error || "Credenciais inválidas");
+        throw new Error(resolveAuthErrorMessage(user, "Credenciais inválidas"));
       }
 
       if ((user.active !== 1 && user.active !== true) || !user.api_key) {
-        throw new Error("Credenciais inválidas");
+        throw new Error(
+          user.active === 0 || user.active === false
+            ? "Usuário desativado"
+            : "Credenciais inválidas"
+        );
       }
 
       logIn({ commit }, user);
       return user;
     })
     .catch((e) => {
-      commit(types.LOGIN_SET_ERROR, e.message);
-      throw e;
+      const message = resolveAuthErrorMessage(e, e?.message || "Credenciais inválidas");
+      commit(types.LOGIN_SET_ERROR, message);
+      throw new Error(message);
+    })
+    .finally(() => {
+      commit(types.LOGIN_SET_ISLOADING, false);
+    });
+};
+
+export const dSignIn = ({ commit }, values) => {
+  commit(types.LOGIN_SET_ERROR, "");
+  commit(types.LOGIN_SET_ISLOADING, true);
+
+  return api
+    .fetch("oauth/discord/return", { method: "POST", params: values })
+    .then((response) => {
+      const user =
+        response?.response?.data ?? response?.data ?? response ?? null;
+
+      if (response?.response?.success === false) {
+        throw new Error(
+          resolveAuthErrorMessage(response.response, "Credenciais inválidas")
+        );
+      }
+
+      if (!user || user.error) {
+        throw new Error(resolveAuthErrorMessage(user, "Credenciais inválidas"));
+      }
+
+      if ((user.active !== 1 && user.active !== true) || !user.api_key) {
+        throw new Error(
+          user.active === 0 || user.active === false
+            ? "Usuário desativado"
+            : "Credenciais inválidas"
+        );
+      }
+
+      logIn({ commit }, user);
+      return user;
+    })
+    .catch((e) => {
+      const message = resolveAuthErrorMessage(e, e?.message || "Credenciais inválidas");
+      commit(types.LOGIN_SET_ERROR, message);
+      throw new Error(message);
     })
     .finally(() => {
       commit(types.LOGIN_SET_ISLOADING, false);

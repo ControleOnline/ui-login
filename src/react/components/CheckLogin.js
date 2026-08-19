@@ -2,89 +2,12 @@ import React, {useState, useCallback, useEffect, useRef} from 'react';
 import {useNavigation} from '@react-navigation/native';
 import {useStore} from '@store';
 import {isPublicRoute} from '@controleonline/ui-login/src/react/router/publicRoutes';
-
-// Keys that must never be forwarded as post-login route params.
-const REDIRECT_PARAM_BLACKLIST = new Set([
-  'showBottomCart',
-  'redirectRoute',
-  'redirectParams',
-  'store',
-]);
-
-// Profile redirects after logout/login are unreliable and caused a loop on
-// /sign-in-page?redirectRoute=ProfilePage. Prefer the app home instead.
-const SKIP_POST_LOGIN_REDIRECTS = new Set([
-  'ProfilePage',
-  'ShopProfilePage',
-  'ShopProfileLegacyPage',
-]);
-
-const sanitizeParamObject = params => {
-  if (!params || typeof params !== 'object' || Array.isArray(params)) {
-    return undefined;
-  }
-
-  const cleaned = Object.entries(params).reduce((acc, [key, value]) => {
-    if (!REDIRECT_PARAM_BLACKLIST.has(key) && value !== undefined) {
-      acc[key] = value;
-    }
-    return acc;
-  }, {});
-
-  return Object.keys(cleaned).length > 0 ? cleaned : undefined;
-};
-
-const getRedirectParams = route => {
-  const cleaned = sanitizeParamObject(route?.params);
-  return cleaned ? JSON.stringify(cleaned) : undefined;
-};
-
-const normalizeRedirectParams = redirectParams => {
-  if (!redirectParams) {
-    return undefined;
-  }
-
-  if (typeof redirectParams === 'string') {
-    try {
-      const parsedParams = JSON.parse(redirectParams);
-      return sanitizeParamObject(parsedParams);
-    } catch {
-      return undefined;
-    }
-  }
-
-  return sanitizeParamObject(redirectParams);
-};
-
-const resolveRedirectRoute = (routeNames, redirectRoute) => {
-  if (!redirectRoute || redirectRoute === 'SignInPage') {
-    return null;
-  }
-
-  if (SKIP_POST_LOGIN_REDIRECTS.has(redirectRoute)) {
-    return null;
-  }
-
-  if (routeNames.includes(redirectRoute)) {
-    return redirectRoute;
-  }
-
-  const redirectAliases = {
-    ProfilePage: 'ShopProfilePage',
-    ShopProfileLegacyPage: 'ShopProfilePage',
-  };
-  const aliasedRoute = redirectAliases[redirectRoute];
-
-  if (
-    aliasedRoute &&
-    !SKIP_POST_LOGIN_REDIRECTS.has(aliasedRoute) &&
-    routeNames.includes(aliasedRoute)
-  ) {
-    return aliasedRoute;
-  }
-
-  return null;
-};
+import {
+  getRedirectParams,
+  normalizeRedirectParams,
+  resolveRedirectRoute,
+  getDefaultPostLoginRoute,
+} from '../utils/redirectParams';
 
 const CheckLogin = ({}) => {
   const navigation = useNavigation();
@@ -96,18 +19,10 @@ const CheckLogin = ({}) => {
   const currentRouteName = currentRoute?.name || '';
   const navigatingRef = useRef(false);
 
-  const getPostLoginRoute = useCallback(() => {
-    const routeNames = navigation?.getState?.()?.routeNames || [];
-    if (routeNames.includes('HomePage')) return 'HomePage';
-    if (routeNames.includes('CrmIndex')) return 'CrmIndex';
-    if (routeNames.includes('OrderHistoryPage')) return 'OrderHistoryPage';
-    if (routeNames.includes('ShopIndex')) return 'ShopIndex';
-    return (
-      routeNames.find(
-        name => name !== 'SignInPage' && !SKIP_POST_LOGIN_REDIRECTS.has(name),
-      ) || null
-    );
-  }, [navigation]);
+  const getPostLoginRoute = useCallback(
+    () => getDefaultPostLoginRoute(navigation),
+    [navigation],
+  );
 
   useEffect(() => {
     if (sessionChecked) {
@@ -145,12 +60,7 @@ const CheckLogin = ({}) => {
       if (preferClean) {
         navigation.reset({
           index: 0,
-          routes: [
-            {
-              name: 'SignInPage',
-              params: {redirectRoute: 'HomePage'},
-            },
-          ],
+          routes: [{name: 'SignInPage'}],
         });
       } else {
         const redirectParams = getRedirectParams(currentRoute);
@@ -181,10 +91,9 @@ const CheckLogin = ({}) => {
         routeNames,
         currentRoute?.params?.redirectRoute,
       );
-      const postLoginRoute = resolvedRedirectRoute || getPostLoginRoute();
-
-      // Authenticated user must never remain on SignInPage.
-      if (!postLoginRoute) return;
+      // Without a valid redirectRoute, always land on Home (never stay on SignIn).
+      const postLoginRoute =
+        resolvedRedirectRoute || getPostLoginRoute() || 'HomePage';
 
       const nextParams = normalizeRedirectParams(
         currentRoute?.params?.redirectParams,

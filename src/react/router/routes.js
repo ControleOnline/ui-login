@@ -2,6 +2,7 @@ import SignInPage from "@controleonline/ui-login/src/react/pages/sign-in";
 import CreateAccount from "@controleonline/ui-login/src/react/pages/create-account";
 import ConfirmAccountPage from "@controleonline/ui-login/src/react/pages/confirm-account";
 import ResetPasswordPage from "@controleonline/ui-login/src/react/pages/reset-password";
+import OauthDiscordCallback from "@controleonline/ui-login/src/react/pages/oauth-discord-callback";
 const loginRoutes = [
   {
     name: "SignInPage",
@@ -26,7 +27,13 @@ const loginRoutes = [
     component: ResetPasswordPage,
     options: { headerShown: false, showBottomToolBar: false },
   },
-  
+  {
+    name: "OauthDiscordCallbackPage",
+    path: "oauth/discord/callback",
+    component: OauthDiscordCallback,
+    options: { headerShown: false, showBottomToolBar: false },
+  },
+
 ];
 
 export default loginRoutes;
