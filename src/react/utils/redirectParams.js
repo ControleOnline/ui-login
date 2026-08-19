@@ -94,11 +94,12 @@ export const getDefaultPostLoginRoute = navigation => {
   if (routeNames.includes('CrmIndex')) return 'CrmIndex';
   if (routeNames.includes('OrderHistoryPage')) return 'OrderHistoryPage';
   if (routeNames.includes('ShopIndex')) return 'ShopIndex';
-  return (
-    routeNames.find(
-      name => name !== 'SignInPage' && !SKIP_POST_LOGIN_REDIRECTS.has(name),
-    ) || null
+  const firstSafe = routeNames.find(
+    name => name !== 'SignInPage' && !SKIP_POST_LOGIN_REDIRECTS.has(name),
   );
+  // Login must never depend on ?redirectRoute= in the URL.
+  // Without an explicit safe redirect, always go to HomePage.
+  return firstSafe || 'HomePage';
 };
 
 export {REDIRECT_PARAM_BLACKLIST, SKIP_POST_LOGIN_REDIRECTS};
@@ -114,5 +115,6 @@ export const getSignInPostLoginRoute = (navigation, route) => {
     return resolvedRedirectRoute;
   }
 
-  return getDefaultPostLoginRoute(navigation);
+  // No redirectRoute (or invalid/skipped) → always Home (or app default).
+  return getDefaultPostLoginRoute(navigation) || 'HomePage';
 };

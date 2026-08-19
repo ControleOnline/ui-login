@@ -91,10 +91,9 @@ const CheckLogin = ({}) => {
         routeNames,
         currentRoute?.params?.redirectRoute,
       );
-      const postLoginRoute = resolvedRedirectRoute || getPostLoginRoute();
-
-      // Authenticated user must never remain on SignInPage.
-      if (!postLoginRoute) return;
+      // Without a valid redirectRoute, always land on Home (never stay on SignIn).
+      const postLoginRoute =
+        resolvedRedirectRoute || getPostLoginRoute() || 'HomePage';
 
       const nextParams = normalizeRedirectParams(
         currentRoute?.params?.redirectParams,
