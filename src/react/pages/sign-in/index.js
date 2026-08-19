@@ -362,7 +362,7 @@ export default function SignIn({navigation}) {
 
   const handleGoogleSignIn = async () => {
     if (!googleClientId) {
-      showError('Login com Google nao configurado para esta empresa.');
+      showError('Login com Google não configurado para esta empresa.');
       return;
     }
 
@@ -393,7 +393,7 @@ export default function SignIn({navigation}) {
 
   const handleDiscordSignIn = async () => {
     if (!discordClientId) {
-      showError('Login com Discord nao configurado para esta empresa.');
+      showError('Login com Discord não configurado para esta empresa.');
       return;
     }
 
