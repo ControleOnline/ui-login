@@ -26,5 +26,7 @@ describe('ui-login public routes', () => {
     expect(isPublicRoute('ShopOrdersPage')).toBe(true)
     expect(isPublicRoute('ShopProfilePage')).toBe(true)
     expect(isPublicRoute('HomePage')).toBe(true)
+    expect(PUBLIC_ROUTES.has('PaylistPage')).toBe(true)
+    expect(isPublicRoute('PaylistPage')).toBe(true)
   })
 })

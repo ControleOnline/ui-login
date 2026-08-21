@@ -78,7 +78,7 @@ export default function ResetPasswordPage({navigation, route}) {
     const nextErrors = {};
 
     if (!recoveryHash || !recoveryLost) {
-      nextErrors.recovery = 'O link de recuperacao esta incompleto ou expirou.';
+      nextErrors.recovery = 'O link de recuperação está incompleto ou expirou.';
     }
 
     if (!password.trim()) {
@@ -90,7 +90,7 @@ export default function ResetPasswordPage({navigation, route}) {
     if (!confirmPassword.trim()) {
       nextErrors.confirmPassword = 'Confirme a nova senha.';
     } else if (confirmPassword !== password) {
-      nextErrors.confirmPassword = 'As senhas informadas nao coincidem.';
+      nextErrors.confirmPassword = 'As senhas informadas não coincidem.';
     }
 
     setErrors(nextErrors);
@@ -124,11 +124,11 @@ export default function ResetPasswordPage({navigation, route}) {
       });
 
       showSuccess(
-        'Senha redefinida com sucesso. Voce ja pode entrar novamente.',
+        'Senha redefinida com sucesso. Você já pode entrar novamente.',
       );
       setTimeout(goToSignIn, 1200);
     } catch (error) {
-      showError(error?.message || 'Nao foi possivel redefinir a senha agora.');
+      showError(error?.message || 'Não foi possível redefinir a senha agora.');
     } finally {
       setIsSubmitting(false);
     }
