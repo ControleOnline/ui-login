@@ -8,6 +8,7 @@ import {
   ScrollView,
   StatusBar,
 } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 
 import QRCode from 'react-native-qrcode-svg';
 import { env } from '@env';
@@ -22,6 +23,7 @@ import {useMessage} from '@controleonline/ui-common/src/react/components/Message
 import Formatter from '@controleonline/ui-common/src/utils/formatter';
 import {resolveSignInTheme} from '../sign-in/index.styles';
 import {createStyles} from './index.styles';
+import { useTimezones } from './useTimezones';
 
 export default function CreateAccountPage({navigation, route}) {
   const {showError, showSuccess} = useMessage();
@@ -32,6 +34,7 @@ export default function CreateAccountPage({navigation, route}) {
   const {colors: themeColors} = themeGetters;
   const theme = useMemo(() => resolveSignInTheme(themeColors), [themeColors]);
   const styles = useMemo(() => createStyles(theme), [theme]);
+  const { timezoneId, setTimezoneId, timezoneItems, timezonesLoading } = useTimezones();
 
   const isManager = app_type === 'MANAGER';
   const isShop = app_type === 'SHOP';
@@ -98,6 +101,9 @@ export default function CreateAccountPage({navigation, route}) {
     if (!Formatter.validateCPF(people.document))
       return 'CPF inválido';
 
+    if (!timezoneId)
+      return 'Selecione o timezone';
+
     if (!people.ddd || !people.phone)
       return 'Telefone inválido';
 
@@ -148,6 +154,8 @@ export default function CreateAccountPage({navigation, route}) {
           user: {
             user: people.user,
             password: people.password,
+            timezone: timezoneId ? `/timezones/${timezoneId}` : undefined,
+            timezone_id: timezoneId || undefined,
           },
         },
       };
@@ -414,6 +422,33 @@ export default function CreateAccountPage({navigation, route}) {
             setPeople({ ...people, password: v })
           }
         />
+
+        <Text style={styles.section}>
+          Timezone
+        </Text>
+
+        <View style={[styles.input, { paddingHorizontal: 0, justifyContent: 'center' }]}>
+          {timezonesLoading ? (
+            <ActivityIndicator color={theme.buttonText} />
+          ) : (
+            <Picker
+              selectedValue={timezoneId}
+              onValueChange={value => setTimezoneId(String(value || ''))}
+              style={{ color: theme.inputText || theme.text || '#000' }}
+              dropdownIconColor={theme.inputPlaceholderText}
+            >
+              <Picker.Item label="Selecione o timezone *" value="" />
+              {timezoneItems.map(item => {
+                const id = String(item?.id ?? item?.['@id']?.split?.('/')?.pop?.() ?? '');
+                const name = item?.name || item?.label || id;
+                if (!id) return null;
+                return (
+                  <Picker.Item key={id} label={name} value={id} />
+                );
+              })}
+            </Picker>
+          )}
+        </View>
 
         <TouchableOpacity
           style={styles.button}
