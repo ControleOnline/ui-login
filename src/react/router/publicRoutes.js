@@ -19,6 +19,7 @@ export const PUBLIC_ROUTES = new Set([
   'ShopCardsPage',
   'ShopLoyaltyPage',
   'ShopDownloadPage',
+  'PaylistPage',
 ])
 
 export const isPublicRoute = routeName =>
