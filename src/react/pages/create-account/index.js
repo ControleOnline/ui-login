@@ -17,6 +17,12 @@ import {
   formatDisplayUppercase,
   uppercaseText,
 } from '@controleonline/ui-common/src/react/utils/entityDisplay';
+import {
+  PASSWORD_HELP_LINES,
+  PASSWORD_MSG_MIN_LENGTH,
+  mapPasswordErrorMessage,
+  validatePasswordClient,
+} from '@controleonline/ui-common/src/react/utils/passwordPolicy';
 import { resolveAppDomain, resolveRuntimeHost } from '@controleonline/ui-common/src/utils/appDomain';
 import {useStore} from '@store';
 import {useMessage} from '@controleonline/ui-common/src/react/components/MessageService';
@@ -110,8 +116,8 @@ export default function CreateAccountPage({navigation, route}) {
     if (!people.user)
       return 'Informe o usuário';
 
-    if (!people.password || people.password.length < 6)
-      return 'Senha deve ter pelo menos 6 caracteres';
+    const passwordError = validatePasswordClient(people.password);
+    if (passwordError) return passwordError;
 
     if (type === 'PJ') {
 
@@ -186,7 +192,7 @@ export default function CreateAccountPage({navigation, route}) {
 
     } catch (e) {
 
-      showError(e.message);
+      showError(mapPasswordErrorMessage(e.message || e));
 
     } finally {
 
@@ -414,7 +420,7 @@ export default function CreateAccountPage({navigation, route}) {
 
         <TextInput
           style={styles.input}
-          placeholder="Senha"
+          placeholder="Senha (mín. 6 caracteres)"
           placeholderTextColor={theme.inputPlaceholderText}
           secureTextEntry
           value={people.password}
