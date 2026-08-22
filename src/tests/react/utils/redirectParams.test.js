@@ -56,3 +56,26 @@ describe('redirectParams', () => {
     expect(getSignInPostLoginRoute(navigation, {})).toBe('HomePage');
     expect(getSignInPostLoginRoute(navigation, {params: null})).toBe('HomePage');
   });
+
+describe('post-login route stability (app-community#461)', () => {
+  it('getSignInPostLoginRoute never returns SignInPage', () => {
+    const navigation = {
+      getState: () => ({routeNames: ['SignInPage', 'HomePage', 'CrmIndex']}),
+    };
+    const route = {params: {redirectRoute: 'SignInPage'}};
+    expect(getSignInPostLoginRoute(navigation, route)).toBe('HomePage');
+  });
+
+  it('getDefaultPostLoginRoute prefers HomePage over SignInPage', () => {
+    const navigation = {
+      getState: () => ({routeNames: ['SignInPage', 'HomePage']}),
+    };
+    expect(getDefaultPostLoginRoute(navigation)).toBe('HomePage');
+  });
+
+  it('resolveRedirectRoute rejects SignInPage as target', () => {
+    expect(
+      resolveRedirectRoute(['SignInPage', 'HomePage'], 'SignInPage'),
+    ).toBeNull();
+  });
+});
