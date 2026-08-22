@@ -24,9 +24,13 @@ import Formatter from '@controleonline/ui-common/src/utils/formatter';
 import {resolveSignInTheme} from '../sign-in/index.styles';
 import {createStyles} from './index.styles';
 import { useTimezones } from './useTimezones';
+import {
+  buildCreateAccountErrorFeedback,
+  resolveApiErrorMessage,
+} from './utils';
 
 export default function CreateAccountPage({navigation, route}) {
-  const {showError, showSuccess} = useMessage();
+  const {showDialog, showError, showSuccess} = useMessage();
   const authStore = useStore('auth');
   const themeStore = useStore('theme');
   const actions = authStore.actions;
@@ -185,9 +189,31 @@ export default function CreateAccountPage({navigation, route}) {
       }, 1200);
 
     } catch (e) {
-
-      showError(e.message);
-
+      const rawMessage =
+        e?.message ||
+        resolveApiErrorMessage(e?.response?.data || e?.body || e || {});
+      const feedback = buildCreateAccountErrorFeedback({
+        message: rawMessage,
+        email: people.email || people.user,
+      });
+      if (feedback.type === 'duplicate-account') {
+        showDialog({
+          title: feedback.title,
+          message: feedback.message,
+          onConfirm: () =>
+            navigation?.navigate?.('SignInPage', {
+              ...(route?.params?.redirectRoute
+                ? {redirectRoute: route.params.redirectRoute}
+                : {}),
+              ...(route?.params?.redirectParams
+                ? {redirectParams: route.params.redirectParams}
+                : {}),
+              ...feedback.params,
+            }),
+        });
+      } else {
+        showError(feedback.message);
+      }
     } finally {
 
       setLoading(false);

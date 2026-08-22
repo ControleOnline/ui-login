@@ -25,6 +25,7 @@ import DefaultFile from '@controleonline/ui-default/src/react/components/files/D
 
 import {createStyles, resolveSignInTheme} from './index.styles';
 import SignInForgotPasswordModal from './SignInForgotPasswordModal';
+import {useRecoveryParams} from './useRecoveryParams';
 import {validateSignInForm} from './signInValidation';
 import {
   normalizeRedirectParams,
@@ -55,6 +56,7 @@ export default function SignIn({navigation}) {
   const [logoLoadError, setLogoLoadError] = useState(false);
   const [forgotPasswordVisible, setForgotPasswordVisible] = useState(false);
   const [recoveryLogin, setRecoveryLogin] = useState('');
+  useRecoveryParams({navigation, route, setRecoveryLogin, setForgotPasswordVisible});
   const authStore = useStore('auth');
   const themeStore = useStore('theme');
   const actions = authStore.actions;
