@@ -1,5 +1,3 @@
-/* Auth / Sign-in entry. */
-
 import React, {useState, useCallback, useEffect, useMemo} from 'react';
 import {
   Text,
@@ -74,16 +72,12 @@ export default function SignIn({navigation}) {
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   const brandCompany = useMemo(() => {
-    if (defaultCompany?.id) {
-      return defaultCompany;
-    }
-    if (currentCompany?.id) {
-      return currentCompany;
-    }
+    if (defaultCompany?.id) return defaultCompany;
+    if (currentCompany?.id) return currentCompany;
     return {};
   }, [currentCompany, defaultCompany]);
 
-    const googleClientId = useMemo(
+  const googleClientId = useMemo(
     () =>
       resolveCompanyGoogleOauthClientId(defaultCompany) ||
       resolveCompanyGoogleOauthClientId(currentCompany),
@@ -120,23 +114,23 @@ export default function SignIn({navigation}) {
     loadGoogleOauthApi().catch(() => {});
   }, [canUseGoogleLogin, googleClientId]);
 
+  const postLoginRedirectedRef = React.useRef(false);
   useFocusEffect(
     useCallback(() => {
-      if (actions.isLogged()) {
-        const postLoginRoute = getSignInPostLoginRoute(navigation, route);
-        if (postLoginRoute) {
-          navigation.reset({
-            index: 0,
-            routes: [
-              {
-                name: postLoginRoute,
-                params: redirectParams,
-              },
-            ],
-          });
-        }
-      }
-    }, [actions, navigation, route, redirectParams]),
+      postLoginRedirectedRef.current = false;
+      if (!actions.isLogged()) return undefined;
+      const postLoginRoute = getSignInPostLoginRoute(navigation, route);
+      if (!postLoginRoute || postLoginRedirectedRef.current) return undefined;
+      postLoginRedirectedRef.current = true;
+      navigation.reset({
+        index: 0,
+        routes: [{
+          name: postLoginRoute,
+          ...(redirectParams ? {params: redirectParams} : {}),
+        }],
+      });
+      return () => { postLoginRedirectedRef.current = false; };
+    }, [actions, navigation, redirectParams, route]),
   );
 
   const validateForm = () => {
