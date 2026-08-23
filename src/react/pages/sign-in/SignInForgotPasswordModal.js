@@ -9,6 +9,10 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 
+const {
+  getRecoveryModalSubtitle,
+} = require('./recoveryMessages');
+
 /**
  * Forgot-password modal for SignIn. Keeps recovery UI out of the main page file.
  */
@@ -46,12 +50,7 @@ export default function SignInForgotPasswordModal({
           </View>
 
           <Text style={styles.recoveryModalDescription}>
-            {global.t?.t(
-              'auth',
-              'message',
-              'recoverPasswordDescription',
-            ) ||
-              'Informe seu e-mail para receber o link de recuperação de senha.'}
+            {getRecoveryModalSubtitle(global.t?.t)}
           </Text>
 
           <TextInput

@@ -25,6 +25,7 @@ import DefaultFile from '@controleonline/ui-default/src/react/components/files/D
 
 import {createStyles, resolveSignInTheme} from './index.styles';
 import SignInForgotPasswordModal from './SignInForgotPasswordModal';
+const {getRecoverySuccessMessage} = require('./recoveryMessages');
 import {validateSignInForm} from './signInValidation';
 import {
   normalizeRedirectParams,
@@ -260,12 +261,9 @@ export default function SignIn({navigation}) {
         },
       });
 
-      showSuccess(
-        'Se o login existir, o link de recuperação será enviado para o e-mail informado.',
-        {
-          duration: 4000,
-        },
-      );
+      showSuccess(getRecoverySuccessMessage(global.t?.t), {
+        duration: 4000,
+      });
       setRecoveryLogin('');
       setForgotPasswordVisible(false);
     } catch (error) {
