@@ -58,6 +58,13 @@ const resolveAuthErrorMessage = (payloadOrError, fallback = "Credenciais inváli
     return "Usuário desativado";
   }
 
+  if (
+    code === "TEMPORARY_PASSWORD_EXPIRED" ||
+    /senha tempor[aá]ria expirada/i.test(String(error || ""))
+  ) {
+    return "Senha temporária expirada. Solicite uma nova recuperação de senha.";
+  }
+
   return error || fallback;
 };
 

@@ -144,7 +144,14 @@ export default function SignIn({navigation}) {
     setIsLoading(true);
     setErrors({});
     try {
-      await actions.signIn({username, password});
+      const session = await actions.signIn({username, password});
+      if (session?.must_change_password) {
+        navigation.reset({
+          index: 0,
+          routes: [{name: 'ForcedChangePasswordPage'}],
+        });
+        return;
+      }
       const postLoginRoute =
         getSignInPostLoginRoute(navigation, route) || 'HomePage';
       navigation.reset({
@@ -242,7 +249,7 @@ export default function SignIn({navigation}) {
     }
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(login)) {
-      showError('Informe um e-mail válido para receber o link.');
+      showError('Informe um e-mail válido para receber a senha temporária.');
       return;
     }
 
@@ -257,17 +264,13 @@ export default function SignIn({navigation}) {
       });
 
       showSuccess(
-        'Se o login existir, o link de recuperação será enviado para o e-mail informado.',
-        {
-          duration: 4000,
-        },
+        'Se o login existir, uma senha temporária (15 min) será enviada por e-mail. Faça login e troque a senha nesse prazo.',
+        {duration: 6000},
       );
       setRecoveryLogin('');
       setForgotPasswordVisible(false);
     } catch (error) {
-      showError(
-        error?.message || 'Não foi possível enviar o link de recuperação.',
-      );
+      showError(error?.message || 'Não foi possível enviar a senha temporária.');
     } finally {
       setIsRecovering(false);
     }

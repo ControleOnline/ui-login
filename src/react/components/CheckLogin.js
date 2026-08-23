@@ -23,7 +23,7 @@ const CheckLogin = ({}) => {
   const authStore = useStore('auth');
   const authGetters = authStore.getters;
   const authActions = authStore.actions;
-  const {isLogged, sessionChecked} = authGetters;
+  const {isLogged, user, sessionChecked} = authGetters;
   const [currentRouteName, setCurrentRouteName] = useState('');
   const [routeParams, setRouteParams] = useState(null);
   const navigatingRef = useRef(false);
@@ -70,9 +70,10 @@ const CheckLogin = ({}) => {
     }
   }, [currentRouteName]);
 
+  // Logout (or session drop) while still on SignIn must clear the lock so a
+  // future post-login redirect can run.
   useEffect(() => {
     if (!isLogged) {
-      // Allow a future post-login redirect after logout.
       if (lastRedirectKeyRef.current.includes('|logged|')) {
         lastRedirectKeyRef.current = '';
         navigatingRef.current = false;
@@ -128,6 +129,25 @@ const CheckLogin = ({}) => {
       return;
     }
 
+    // Temporary password (app-community#68): force change-password screen.
+    if (
+      isLogged &&
+      user?.must_change_password &&
+      currentRouteName !== 'ForcedChangePasswordPage'
+    ) {
+      const redirectKey = `${currentRouteName}|must-change-password`;
+      if (lastRedirectKeyRef.current === redirectKey) {
+        return;
+      }
+      navigatingRef.current = true;
+      lastRedirectKeyRef.current = redirectKey;
+      navigation.reset({
+        index: 0,
+        routes: [{name: 'ForcedChangePasswordPage'}],
+      });
+      return;
+    }
+
     if (isLogged && currentRouteName === 'SignInPage') {
       const routeNames = navigation?.getState?.()?.routeNames || [];
       const resolvedRedirectRoute = resolveRedirectRoute(
@@ -164,6 +184,7 @@ const CheckLogin = ({}) => {
     navigation,
     routeParams,
     sessionChecked,
+    user?.must_change_password,
   ]);
 
   return null;

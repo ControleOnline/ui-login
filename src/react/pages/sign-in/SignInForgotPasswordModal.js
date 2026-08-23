@@ -51,7 +51,7 @@ export default function SignInForgotPasswordModal({
               'message',
               'recoverPasswordDescription',
             ) ||
-              'Informe seu e-mail para receber o link de recuperação de senha.'}
+              'Informe seu e-mail para receber uma senha temporária. Ela vale por 15 minutos: faça login e troque a senha obrigatoriamente nesse prazo.'}
           </Text>
 
           <TextInput
