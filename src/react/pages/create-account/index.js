@@ -15,7 +15,6 @@ import { env } from '@env';
 import {app_type} from '@appType';
 import {
   formatDisplayUppercase,
-  uppercaseText,
 } from '@controleonline/ui-common/src/react/utils/entityDisplay';
 import {
   PASSWORD_HELP_LINES,
@@ -153,8 +152,8 @@ export default function CreateAccountPage({navigation, route}) {
       const payload = {
         people: {
           document: Formatter.onlyNumbers(people.document),
-          name: formatDisplayUppercase(people.name),
-          alias: formatDisplayUppercase(people.alias),
+          name: String(people.name || "").trim(),
+          alias: String(people.alias || "").trim(),
           email: people.email,
           phone: {
             ddi: people.ddi,
@@ -174,8 +173,8 @@ export default function CreateAccountPage({navigation, route}) {
 
         payload.company = {
           document: Formatter.onlyNumbers(company.document),
-          name: formatDisplayUppercase(company.name),
-          alias: formatDisplayUppercase(company.alias),
+          name: String(company.name || "").trim(),
+          alias: String(company.alias || "").trim(),
         };
 
       }
@@ -323,7 +322,7 @@ export default function CreateAccountPage({navigation, route}) {
           placeholder="Nome completo"
           placeholderTextColor={theme.inputPlaceholderText}
           value={people.name}
-          onChangeText={v => setPeople({ ...people, name: uppercaseText(v) })}
+          onChangeText={v => setPeople({ ...people, name: v })}
         />
 
         <TextInput
@@ -331,7 +330,7 @@ export default function CreateAccountPage({navigation, route}) {
           placeholder="Como quer ser chamado?"
           placeholderTextColor={theme.inputPlaceholderText}
           value={people.alias}
-          onChangeText={v => setPeople({ ...people, alias: uppercaseText(v) })}
+          onChangeText={v => setPeople({ ...people, alias: v })}
         />
 
         <TextInput
@@ -412,7 +411,7 @@ export default function CreateAccountPage({navigation, route}) {
               placeholderTextColor={theme.inputPlaceholderText}
               value={company.name}
               onChangeText={v =>
-                setCompany({ ...company, name: uppercaseText(v) })
+                setCompany({ ...company, name: v })
               }
             />
 
@@ -422,7 +421,7 @@ export default function CreateAccountPage({navigation, route}) {
               placeholderTextColor={theme.inputPlaceholderText}
               value={company.alias}
               onChangeText={v =>
-                setCompany({ ...company, alias: uppercaseText(v) })
+                setCompany({ ...company, alias: v })
               }
             />
 
