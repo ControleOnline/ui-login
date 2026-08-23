@@ -30,8 +30,7 @@ import {resolveSignInTheme} from '../sign-in/index.styles';
 import {createStyles} from './index.styles';
 import { useTimezones } from './useTimezones';
 import {
-  buildCreateAccountErrorFeedback,
-  resolveApiErrorMessage,
+  resolveCreateAccountCatchFeedback,
 } from './utils';
 
 export default function CreateAccountPage({navigation, route}) {
@@ -194,12 +193,9 @@ export default function CreateAccountPage({navigation, route}) {
       }, 1200);
 
     } catch (e) {
-      const rawMessage =
-        mapPasswordErrorMessage(e?.message || '') ||
-        mapPasswordErrorMessage(resolveApiErrorMessage(e?.response?.data || e?.body || e || {}));
-      const feedback = buildCreateAccountErrorFeedback({
-        message: rawMessage,
+      const feedback = resolveCreateAccountCatchFeedback(e, {
         email: people.email || people.user,
+        mapPasswordErrorMessage,
       });
       if (feedback.type === 'duplicate-account') {
         showDialog({
