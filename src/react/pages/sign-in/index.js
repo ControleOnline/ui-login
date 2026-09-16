@@ -26,10 +26,7 @@ import DefaultFile from '@controleonline/ui-default/src/react/components/files/D
 import {createStyles, resolveSignInTheme} from './index.styles';
 import SignInForgotPasswordModal from './SignInForgotPasswordModal';
 import {validateSignInForm} from './signInValidation';
-import {
-  normalizeRedirectParams,
-  getSignInPostLoginRoute,
-} from '../../utils/redirectParams';
+import {normalizeRedirectParams} from '../../utils/redirectParams';
 import {
   loadGoogleOauthApi,
   requestGoogleAccessToken,
@@ -118,25 +115,6 @@ export default function SignIn({navigation}) {
     loadGoogleOauthApi().catch(() => {});
   }, [canUseGoogleLogin, googleClientId]);
 
-  useFocusEffect(
-    useCallback(() => {
-      if (actions.isLogged()) {
-        const postLoginRoute = getSignInPostLoginRoute(navigation, route);
-        if (postLoginRoute) {
-          navigation.reset({
-            index: 0,
-            routes: [
-              {
-                name: postLoginRoute,
-                params: redirectParams,
-              },
-            ],
-          });
-        }
-      }
-    }, [actions, navigation, route, redirectParams]),
-  );
-
   const validateForm = () => {
     const newErrors = validateSignInForm(username, password);
     setErrors(newErrors);
@@ -149,17 +127,6 @@ export default function SignIn({navigation}) {
     setErrors({});
     try {
       await actions.signIn({username, password});
-      const postLoginRoute =
-        getSignInPostLoginRoute(navigation, route) || 'HomePage';
-      navigation.reset({
-        index: 0,
-        routes: [
-          {
-            name: postLoginRoute,
-            ...(redirectParams ? {params: redirectParams} : {}),
-          },
-        ],
-      });
     } catch (error) {
       showError(
         error.message ||
@@ -187,20 +154,8 @@ export default function SignIn({navigation}) {
     try {
       const accessToken = await requestGoogleAccessToken(googleClientId);
       await actions.gSignIn({access_token: accessToken});
-
-      const postLoginRoute =
-        getSignInPostLoginRoute(navigation, route) || 'HomePage';
-      navigation.reset({
-        index: 0,
-        routes: [
-          {
-            name: postLoginRoute,
-            ...(redirectParams ? {params: redirectParams} : {}),
-          },
-        ],
-      });
     } catch (error) {
-      showError(resolveGoogleOauthErrorMessage(error));
+      showError(getGoogleSignInErrorMessage(error));
     } finally {
       setIsGoogleLoading(false);
     }
@@ -218,18 +173,6 @@ export default function SignIn({navigation}) {
     try {
       const accessToken = await requestDiscordAccessToken(discordClientId);
       await actions.dSignIn({access_token: accessToken});
-
-      const postLoginRoute =
-        getSignInPostLoginRoute(navigation, route) || 'HomePage';
-      navigation.reset({
-        index: 0,
-        routes: [
-          {
-            name: postLoginRoute,
-            ...(redirectParams ? {params: redirectParams} : {}),
-          },
-        ],
-      });
     } catch (error) {
       showError(resolveDiscordOauthErrorMessage(error));
     } finally {
