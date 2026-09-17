@@ -63,28 +63,32 @@ export default function SignIn({navigation}) {
   const peopleActions = peopleStore.actions;
   const peopleGetters = peopleStore.getters;
   const themeGetters = themeStore?.getters || {};
-  const {defaultCompany, currentCompany} = peopleGetters;
+  const {mainCompany, currentCompany} = peopleGetters;
   const {colors: themeColors} = themeGetters;
   const theme = useMemo(() => resolveSignInTheme(themeColors), [themeColors]);
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   const brandCompany = useMemo(() => {
-    if (defaultCompany?.id) return defaultCompany;
-    if (currentCompany?.id) return currentCompany;
+    if (mainCompany?.id) {
+      return mainCompany;
+    }
+    if (currentCompany?.id) {
+      return currentCompany;
+    }
     return {};
-  }, [currentCompany, defaultCompany]);
+  }, [currentCompany, mainCompany]);
 
   const googleClientId = useMemo(
     () =>
-      resolveCompanyGoogleOauthClientId(defaultCompany) ||
+      resolveCompanyGoogleOauthClientId(mainCompany) ||
       resolveCompanyGoogleOauthClientId(currentCompany),
-    [currentCompany, defaultCompany],
+    [currentCompany, mainCompany],
   );
   const discordClientId = useMemo(
     () =>
-      resolveCompanyDiscordOauthClientId(defaultCompany) ||
+      resolveCompanyDiscordOauthClientId(mainCompany) ||
       resolveCompanyDiscordOauthClientId(currentCompany),
-    [currentCompany, defaultCompany],
+    [currentCompany, mainCompany],
   );
   const canUseGoogleLogin = Platform.OS === 'web' && !!googleClientId;
   const canUseDiscordLogin = Platform.OS === 'web' && !!discordClientId;
@@ -99,7 +103,7 @@ export default function SignIn({navigation}) {
 
   useFocusEffect(
     useCallback(() => {
-      peopleActions.defaultCompany().catch(() => {});
+      peopleActions.mainCompany().catch(() => {});
     }, [peopleActions]),
   );
 

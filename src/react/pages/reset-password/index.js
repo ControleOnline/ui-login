@@ -47,7 +47,7 @@ export default function ResetPasswordPage({navigation, route}) {
   const themeStore = useStore('theme');
   const peopleGetters = peopleStore.getters;
   const themeGetters = themeStore?.getters || {};
-  const {defaultCompany, currentCompany} = peopleGetters;
+  const {mainCompany, currentCompany} = peopleGetters;
   const {colors: themeColors} = themeGetters;
   const signInTheme = useMemo(
     () => resolveSignInTheme(themeColors),
@@ -66,8 +66,8 @@ export default function ResetPasswordPage({navigation, route}) {
   );
 
   const brandCompany = useMemo(() => {
-    if (defaultCompany?.id) {
-      return defaultCompany;
+    if (mainCompany?.id) {
+      return mainCompany;
     }
 
     if (currentCompany?.id) {
@@ -75,7 +75,7 @@ export default function ResetPasswordPage({navigation, route}) {
     }
 
     return {};
-  }, [currentCompany, defaultCompany]);
+  }, [currentCompany, mainCompany]);
 
   useEffect(() => {
     setLogoLoadError(false);
