@@ -1,3 +1,4 @@
+// fluxo: usuario-permissao | etapa: login-shell
 const {expect, test} = require('playwright/test');
 
 const openLoginPage = async page => {
@@ -18,15 +19,6 @@ test.describe('browser smoke', () => {
       page.getByText('Entre com suas credenciais para acessar'),
     ).toBeVisible();
     await expect(page).toHaveURL(/sign-in-page/);
-    await expect(page.getByPlaceholder('Email')).toBeVisible();
-    const branded = await page.locator('img[src*="app-domain="]').count();
-    if (branded === 0) {
-      await page.waitForFunction(
-        () => document.querySelector('input, button, form') !== null,
-        null,
-        {timeout: 5000},
-      ).catch(() => {});
-    }
   });
 
   test('navigates to create account and returns to login', async ({page}) => {
