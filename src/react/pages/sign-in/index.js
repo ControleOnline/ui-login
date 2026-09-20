@@ -130,8 +130,14 @@ export default function SignIn({navigation}) {
     setErrors({});
     try {
       await actions.signIn({username, password});
-      // One-shot post-login navigation. CheckLogin also guards; this covers the
-      // logout → login path where the guard alone still raced on staging (#827).
+
+      // Web: full navigation after auth. Soft navigation.reset races CheckLogin
+      // and DefaultProvider after logout→login and triggers React #185
+      // (app-community#827). Session is already in localStorage from logIn.
+      if (Platform.OS === 'web' && typeof window !== 'undefined') {
+        window.location.replace('/');
+        return;
+      }
       const postLoginRoute =
         getSignInPostLoginRoute(navigation, route) || 'HomePage';
       navigation.reset({
@@ -170,6 +176,14 @@ export default function SignIn({navigation}) {
     try {
       const accessToken = await requestGoogleAccessToken(googleClientId);
       await actions.gSignIn({access_token: accessToken});
+
+      // Web: full navigation after auth. Soft navigation.reset races CheckLogin
+      // and DefaultProvider after logout→login and triggers React #185
+      // (app-community#827). Session is already in localStorage from logIn.
+      if (Platform.OS === 'web' && typeof window !== 'undefined') {
+        window.location.replace('/');
+        return;
+      }
       const postLoginRoute =
         getSignInPostLoginRoute(navigation, route) || 'HomePage';
       navigation.reset({
@@ -200,6 +214,14 @@ export default function SignIn({navigation}) {
     try {
       const accessToken = await requestDiscordAccessToken(discordClientId);
       await actions.dSignIn({access_token: accessToken});
+
+      // Web: full navigation after auth. Soft navigation.reset races CheckLogin
+      // and DefaultProvider after logout→login and triggers React #185
+      // (app-community#827). Session is already in localStorage from logIn.
+      if (Platform.OS === 'web' && typeof window !== 'undefined') {
+        window.location.replace('/');
+        return;
+      }
       const postLoginRoute =
         getSignInPostLoginRoute(navigation, route) || 'HomePage';
       navigation.reset({
