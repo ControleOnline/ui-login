@@ -26,7 +26,10 @@ import DefaultFile from '@controleonline/ui-default/src/react/components/files/D
 import {createStyles, resolveSignInTheme} from './index.styles';
 import SignInForgotPasswordModal from './SignInForgotPasswordModal';
 import {validateSignInForm} from './signInValidation';
-import {normalizeRedirectParams} from '../../utils/redirectParams';
+import {
+  normalizeRedirectParams,
+  getSignInPostLoginRoute,
+} from '../../utils/redirectParams';
 import {
   loadGoogleOauthApi,
   requestGoogleAccessToken,
@@ -127,6 +130,19 @@ export default function SignIn({navigation}) {
     setErrors({});
     try {
       await actions.signIn({username, password});
+      // One-shot post-login navigation. CheckLogin also guards; this covers the
+      // logout → login path where the guard alone still raced on staging (#827).
+      const postLoginRoute =
+        getSignInPostLoginRoute(navigation, route) || 'HomePage';
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: postLoginRoute,
+            ...(redirectParams ? {params: redirectParams} : {}),
+          },
+        ],
+      });
     } catch (error) {
       showError(
         error.message ||
@@ -154,6 +170,17 @@ export default function SignIn({navigation}) {
     try {
       const accessToken = await requestGoogleAccessToken(googleClientId);
       await actions.gSignIn({access_token: accessToken});
+      const postLoginRoute =
+        getSignInPostLoginRoute(navigation, route) || 'HomePage';
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: postLoginRoute,
+            ...(redirectParams ? {params: redirectParams} : {}),
+          },
+        ],
+      });
     } catch (error) {
       showError(getGoogleSignInErrorMessage(error));
     } finally {
@@ -173,6 +200,17 @@ export default function SignIn({navigation}) {
     try {
       const accessToken = await requestDiscordAccessToken(discordClientId);
       await actions.dSignIn({access_token: accessToken});
+      const postLoginRoute =
+        getSignInPostLoginRoute(navigation, route) || 'HomePage';
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: postLoginRoute,
+            ...(redirectParams ? {params: redirectParams} : {}),
+          },
+        ],
+      });
     } catch (error) {
       showError(resolveDiscordOauthErrorMessage(error));
     } finally {

@@ -13,10 +13,17 @@ import {
  * Guards auth routes: restore session once, bounce unauthenticated users off
  * private screens, and leave SignInPage after a successful login.
  *
- * Redirects are intentionally one-shot per (routeName, isLogged) pair. Clearing
- * the guard on requestAnimationFrame while still on SignInPage caused React
- * #185 (maximum update depth) after sign-in because state listeners kept
- * re-firing navigation.reset in a tight loop.
+ * React #185 (maximum update depth) was observed specifically on the
+ * logout → login path:
+ * - navigation "state" listeners fed a new route.params object identity every
+ *   tick into React state, re-running the redirect effect;
+ * - clearing the navigation lock on requestAnimationFrame while still on
+ *   SignInPage allowed reset() to re-enter in a tight loop;
+ * - residual redirectRoute=ProfilePage after logout bounced post-login.
+ *
+ * Strategy: keep params in a ref (not state), one-shot redirect keys, hold the
+ * lock until the route actually leaves the source screen, and always land on
+ * Home after an intentional (preferClean) logout.
  */
 const CheckLogin = ({}) => {
   const navigation = useNavigation();
@@ -25,9 +32,11 @@ const CheckLogin = ({}) => {
   const authActions = authStore.actions;
   const {isLogged, sessionChecked} = authGetters;
   const [currentRouteName, setCurrentRouteName] = useState('');
-  const [routeParams, setRouteParams] = useState(null);
+  const routeParamsRef = useRef(null);
   const navigatingRef = useRef(false);
   const lastRedirectKeyRef = useRef('');
+  // Set when CheckLogin consumes preferCleanSignIn (intentional logout).
+  const forceHomeAfterLoginRef = useRef(false);
 
   const getPostLoginRoute = useCallback(
     () => getDefaultPostLoginRoute(navigation),
@@ -48,8 +57,9 @@ const CheckLogin = ({}) => {
     if (!navigation) return;
     const route = navigation.getCurrentRoute?.() || null;
     const nextName = route?.name || '';
+    // Params live in a ref so identity churn does not re-trigger effects.
+    routeParamsRef.current = route?.params ?? null;
     setCurrentRouteName(prev => (prev === nextName ? prev : nextName));
-    setRouteParams(route?.params ?? null);
   }, [navigation]);
 
   useEffect(() => {
@@ -57,8 +67,7 @@ const CheckLogin = ({}) => {
     return navigation?.addListener?.('state', updateCurrentRoute);
   }, [navigation, updateCurrentRoute]);
 
-  // Release the navigation lock once the route actually left the source screen.
-  // Also clear the last redirect key so a later visit to SignIn can redirect again.
+  // Release the lock only after the route actually left the source screen.
   useEffect(() => {
     const sourceName = lastRedirectKeyRef.current.split('|')[0] || '';
     if (!sourceName) {
@@ -70,9 +79,9 @@ const CheckLogin = ({}) => {
     }
   }, [currentRouteName]);
 
+  // Logout while still on SignIn must allow a future post-login redirect.
   useEffect(() => {
     if (!isLogged) {
-      // Allow a future post-login redirect after logout.
       if (lastRedirectKeyRef.current.includes('|logged|')) {
         lastRedirectKeyRef.current = '';
         navigatingRef.current = false;
@@ -89,6 +98,10 @@ const CheckLogin = ({}) => {
         typeof authActions.consumePreferCleanSignIn === 'function'
           ? authActions.consumePreferCleanSignIn()
           : false;
+
+      if (preferClean) {
+        forceHomeAfterLoginRef.current = true;
+      }
 
       const redirectKey = preferClean
         ? `${currentRouteName}|guest-clean`
@@ -109,7 +122,7 @@ const CheckLogin = ({}) => {
       } else {
         const redirectParams = getRedirectParams({
           name: currentRouteName,
-          params: routeParams,
+          params: routeParamsRef.current,
         });
 
         navigation.reset({
@@ -130,10 +143,13 @@ const CheckLogin = ({}) => {
 
     if (isLogged && currentRouteName === 'SignInPage') {
       const routeNames = navigation?.getState?.()?.routeNames || [];
-      const resolvedRedirectRoute = resolveRedirectRoute(
-        routeNames,
-        routeParams?.redirectRoute,
-      );
+      const forceHome = forceHomeAfterLoginRef.current;
+      const resolvedRedirectRoute = forceHome
+        ? null
+        : resolveRedirectRoute(
+            routeNames,
+            routeParamsRef.current?.redirectRoute,
+          );
       const postLoginRoute =
         resolvedRedirectRoute || getPostLoginRoute() || 'HomePage';
 
@@ -142,10 +158,14 @@ const CheckLogin = ({}) => {
         return;
       }
 
-      const nextParams = normalizeRedirectParams(routeParams?.redirectParams);
+      const nextParams = forceHome
+        ? undefined
+        : normalizeRedirectParams(routeParamsRef.current?.redirectParams);
 
       navigatingRef.current = true;
       lastRedirectKeyRef.current = redirectKey;
+      forceHomeAfterLoginRef.current = false;
+
       navigation.reset({
         index: 0,
         routes: [
@@ -162,7 +182,6 @@ const CheckLogin = ({}) => {
     getPostLoginRoute,
     isLogged,
     navigation,
-    routeParams,
     sessionChecked,
   ]);
 
