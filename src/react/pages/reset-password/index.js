@@ -18,13 +18,6 @@ import {api} from '@controleonline/ui-common/src/api';
 import {useMessage} from '@controleonline/ui-common/src/react/components/MessageService';
 import DefaultFile from '@controleonline/ui-default/src/react/components/files/DefaultFile';
 import {createStyles, resolveSignInTheme} from '../sign-in/index.styles';
-import {
-  PASSWORD_HELP_LINES,
-  PASSWORD_MIN_LENGTH,
-  PASSWORD_MSG_MIN_LENGTH,
-  mapPasswordErrorMessage,
-  validatePasswordClient,
-} from '@controleonline/ui-common/src/react/utils/passwordPolicy';
 
 const getRouteParam = value => {
   if (Array.isArray(value)) {
@@ -81,22 +74,23 @@ export default function ResetPasswordPage({navigation, route}) {
     setLogoLoadError(false);
   }, [brandCompany?.logo]);
 
-    const validateForm = () => {
+  const validateForm = () => {
     const nextErrors = {};
 
     if (!recoveryHash || !recoveryLost) {
       nextErrors.recovery = 'O link de recuperação está incompleto ou expirou.';
     }
 
-    const passwordError = validatePasswordClient(password, confirmPassword);
-    if (passwordError) {
-      if (passwordError.includes('confirmação') || passwordError.includes('iguais')) {
-        nextErrors.confirmPassword = passwordError;
-      } else {
-        nextErrors.password = passwordError;
-      }
-    } else if (!confirmPassword.trim()) {
+    if (!password.trim()) {
+      nextErrors.password = 'Informe a nova senha.';
+    } else if (password.trim().length < 6) {
+      nextErrors.password = 'A senha precisa ter pelo menos 6 caracteres.';
+    }
+
+    if (!confirmPassword.trim()) {
       nextErrors.confirmPassword = 'Confirme a nova senha.';
+    } else if (confirmPassword !== password) {
+      nextErrors.confirmPassword = 'As senhas informadas não coincidem.';
     }
 
     setErrors(nextErrors);
@@ -134,11 +128,7 @@ export default function ResetPasswordPage({navigation, route}) {
       );
       setTimeout(goToSignIn, 1200);
     } catch (error) {
-      showError(
-        mapPasswordErrorMessage(
-          error?.message || 'Não foi possível redefinir a senha agora.',
-        ),
-      );
+      showError(error?.message || 'Não foi possível redefinir a senha agora.');
     } finally {
       setIsSubmitting(false);
     }
@@ -252,14 +242,6 @@ export default function ResetPasswordPage({navigation, route}) {
               </TouchableOpacity>
             </View>
 
-            <View style={styles.helpBox}>
-              <Text style={styles.helpTitle}>Requisitos da senha</Text>
-              {PASSWORD_HELP_LINES.map(line => (
-                <Text key={line} style={styles.helpLine}>
-                  • {line}
-                </Text>
-              ))}
-            </View>
             {(errors.password || errors.confirmPassword) && (
               <Text style={styles.errorText}>
                 {errors.password || errors.confirmPassword}
@@ -303,25 +285,6 @@ const createPageStyles = theme =>
       color: theme.textPrimary,
       textAlign: 'center',
       marginBottom: 10,
-    },
-    helpBox: {
-      marginBottom: 12,
-      padding: 12,
-      borderRadius: 8,
-      backgroundColor: theme.inputBackground || '#F8FAFC',
-      borderWidth: 1,
-      borderColor: theme.inputBorder || '#E2E8F0',
-    },
-    helpTitle: {
-      fontSize: 13,
-      fontWeight: '600',
-      color: theme.labelText || '#334155',
-      marginBottom: 4,
-    },
-    helpLine: {
-      fontSize: 12,
-      color: theme.mutedText || '#64748B',
-      lineHeight: 18,
     },
     errorText: {
       color: theme.inputErrorText,
