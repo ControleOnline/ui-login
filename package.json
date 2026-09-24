@@ -1,13 +1,11 @@
 {
   "name": "@controleonline/ui-login",
-  "version": "1.0.104",
+  "version": "1.0.105",
   "author": "ControleOnline",
   "description": "ControleOnline login Quasar UI Component",
   "license": "MIT",
   "main": "src/react/index.js",
-  "scripts": {
-    "test:create-account": "node src/tests/react/pages/createAccount.utils.test.mjs"
-  },
+  "scripts": {},
   "repository": {
     "type": "git",
     "url": "https://github.com/controleonline/conline-quasar-ui"
