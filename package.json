@@ -1,6 +1,6 @@
 {
   "name": "@controleonline/ui-login",
-  "version": "1.0.104",
+  "version": "1.0.107",
   "author": "ControleOnline",
   "description": "ControleOnline login Quasar UI Component",
   "license": "MIT",
@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/controleonline/conline-quasar-ui"
+    "url": "https://github.com/ControleOnline/ui-login"
   },
   "bugs": "",
   "homepage": "https://www.controleonline.com/devs/plugins",
