@@ -14,6 +14,7 @@ import * as Animatable from 'react-native-animatable';
 import {useFocusEffect, useRoute} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Feather';
 import {useStore} from '@store';
+import {env as APP_ENV} from '@env';
 import {api} from '@controleonline/ui-common/src/api';
 import {useMessage} from '@controleonline/ui-common/src/react/components/MessageService';
 import {resolveFileImageUrl} from '@controleonline/ui-common/src/react/utils/fileUrl';
@@ -26,6 +27,7 @@ import SignInForgotPasswordModal from './SignInForgotPasswordModal';
 import {useRecoveryParams} from './useRecoveryParams';
 import {validateSignInForm} from './signInValidation';
 import {normalizeRedirectParams} from '../../utils/redirectParams';
+import {resolveMcpOauthSignInReturnUrl} from '../../utils/mcpOauthContinuation';
 import {
   loadGoogleOauthApi,
   requestGoogleAccessToken,
@@ -134,6 +136,11 @@ export default function SignIn({navigation}) {
         });
         return;
       }
+      const oauthReturnUrl = resolveMcpOauthSignInReturnUrl(route, APP_ENV?.MANAGER_APP);
+      if (Platform.OS === 'web' && oauthReturnUrl && typeof window !== 'undefined') {
+        window.location.replace(oauthReturnUrl);
+        return;
+      }
     } catch (error) {
       showError(
         error.message ||
@@ -161,6 +168,10 @@ export default function SignIn({navigation}) {
     try {
       const accessToken = await requestGoogleAccessToken(googleClientId);
       await actions.gSignIn({access_token: accessToken});
+      const oauthReturnUrl = resolveMcpOauthSignInReturnUrl(route, APP_ENV?.MANAGER_APP);
+      if (Platform.OS === 'web' && oauthReturnUrl && typeof window !== 'undefined') {
+        window.location.replace(oauthReturnUrl);
+      }
     } catch (error) {
       showError(getGoogleSignInErrorMessage(error));
     } finally {
@@ -180,6 +191,10 @@ export default function SignIn({navigation}) {
     try {
       const accessToken = await requestDiscordAccessToken(discordClientId);
       await actions.dSignIn({access_token: accessToken});
+      const oauthReturnUrl = resolveMcpOauthSignInReturnUrl(route, APP_ENV?.MANAGER_APP);
+      if (Platform.OS === 'web' && oauthReturnUrl && typeof window !== 'undefined') {
+        window.location.replace(oauthReturnUrl);
+      }
     } catch (error) {
       showError(resolveDiscordOauthErrorMessage(error));
     } finally {
