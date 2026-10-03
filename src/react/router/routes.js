@@ -3,6 +3,7 @@ import CreateAccount from "@controleonline/ui-login/src/react/pages/create-accou
 import ConfirmAccountPage from "@controleonline/ui-login/src/react/pages/confirm-account";
 import ResetPasswordPage from "@controleonline/ui-login/src/react/pages/reset-password";
 import OauthDiscordCallback from "@controleonline/ui-login/src/react/pages/oauth-discord-callback";
+import McpOAuthConsentPage from "../pages/mcp-oauth-consent";
 const loginRoutes = [
   {
     name: "SignInPage",
@@ -31,6 +32,12 @@ const loginRoutes = [
     name: "OauthDiscordCallbackPage",
     path: "oauth/discord/callback",
     component: OauthDiscordCallback,
+    options: { headerShown: false, showBottomToolBar: false },
+  },
+  {
+    name: "McpOAuthConsentPage",
+    path: "mcp/oauth/consent",
+    component: McpOAuthConsentPage,
     options: { headerShown: false, showBottomToolBar: false },
   },
 
