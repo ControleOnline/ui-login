@@ -40,6 +40,8 @@ import {
   resolveDiscordOauthErrorMessage,
   resolveCompanyDiscordOauthClientId,
 } from '../../utils/discordOauth';
+import {env as APP_ENV} from '@env';
+import {resolveMcpOauthSignInReturnUrl} from '../../utils/mcpOauthContinuation';
 
 export default function SignIn({navigation}) {
   const route = useRoute();
@@ -135,7 +137,9 @@ export default function SignIn({navigation}) {
       // and DefaultProvider after logout→login and triggers React #185
       // (app-community#827). Session is already in localStorage from logIn.
       if (Platform.OS === 'web' && typeof window !== 'undefined') {
-        window.location.replace('/');
+        window.location.replace(
+          resolveMcpOauthSignInReturnUrl(route, APP_ENV?.MANAGER_APP) || '/',
+        );
         return;
       }
       const postLoginRoute =
@@ -181,7 +185,9 @@ export default function SignIn({navigation}) {
       // and DefaultProvider after logout→login and triggers React #185
       // (app-community#827). Session is already in localStorage from logIn.
       if (Platform.OS === 'web' && typeof window !== 'undefined') {
-        window.location.replace('/');
+        window.location.replace(
+          resolveMcpOauthSignInReturnUrl(route, APP_ENV?.MANAGER_APP) || '/',
+        );
         return;
       }
       const postLoginRoute =
@@ -219,7 +225,9 @@ export default function SignIn({navigation}) {
       // and DefaultProvider after logout→login and triggers React #185
       // (app-community#827). Session is already in localStorage from logIn.
       if (Platform.OS === 'web' && typeof window !== 'undefined') {
-        window.location.replace('/');
+        window.location.replace(
+          resolveMcpOauthSignInReturnUrl(route, APP_ENV?.MANAGER_APP) || '/',
+        );
         return;
       }
       const postLoginRoute =
