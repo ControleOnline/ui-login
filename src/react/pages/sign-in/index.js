@@ -1,5 +1,3 @@
-/* Auth / Sign-in entry. */
-
 import React, {useState, useCallback, useEffect, useMemo} from 'react';
 import {
   Text,
@@ -16,6 +14,7 @@ import * as Animatable from 'react-native-animatable';
 import {useFocusEffect, useRoute} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Feather';
 import {useStore} from '@store';
+import {env as APP_ENV} from '@env';
 import {api} from '@controleonline/ui-common/src/api';
 import {useMessage} from '@controleonline/ui-common/src/react/components/MessageService';
 import {resolveFileImageUrl} from '@controleonline/ui-common/src/react/utils/fileUrl';
@@ -25,11 +24,10 @@ import DefaultFile from '@controleonline/ui-default/src/react/components/files/D
 
 import {createStyles, resolveSignInTheme} from './index.styles';
 import SignInForgotPasswordModal from './SignInForgotPasswordModal';
+import {useRecoveryParams} from './useRecoveryParams';
 import {validateSignInForm} from './signInValidation';
-import {
-  normalizeRedirectParams,
-  getSignInPostLoginRoute,
-} from '../../utils/redirectParams';
+import {normalizeRedirectParams} from '../../utils/redirectParams';
+import {resolveMcpOauthSignInReturnUrl} from '../../utils/mcpOauthContinuation';
 import {
   loadGoogleOauthApi,
   requestGoogleAccessToken,
@@ -40,8 +38,6 @@ import {
   resolveDiscordOauthErrorMessage,
   resolveCompanyDiscordOauthClientId,
 } from '../../utils/discordOauth';
-import {env as APP_ENV} from '@env';
-import {resolveMcpOauthSignInReturnUrl} from '../../utils/mcpOauthContinuation';
 
 export default function SignIn({navigation}) {
   const route = useRoute();
@@ -57,6 +53,7 @@ export default function SignIn({navigation}) {
   const [logoLoadError, setLogoLoadError] = useState(false);
   const [forgotPasswordVisible, setForgotPasswordVisible] = useState(false);
   const [recoveryLogin, setRecoveryLogin] = useState('');
+  useRecoveryParams({navigation, route, setRecoveryLogin, setForgotPasswordVisible});
   const authStore = useStore('auth');
   const themeStore = useStore('theme');
   const actions = authStore.actions;
@@ -83,7 +80,7 @@ export default function SignIn({navigation}) {
     return {};
   }, [currentCompany, mainCompany]);
 
-    const googleClientId = useMemo(
+  const googleClientId = useMemo(
     () =>
       resolveCompanyGoogleOauthClientId(mainCompany) ||
       resolveCompanyGoogleOauthClientId(currentCompany),
@@ -131,28 +128,19 @@ export default function SignIn({navigation}) {
     setIsLoading(true);
     setErrors({});
     try {
-      await actions.signIn({username, password});
-
-      // Web: full navigation after auth. Soft navigation.reset races CheckLogin
-      // and DefaultProvider after logout→login and triggers React #185
-      // (app-community#827). Session is already in localStorage from logIn.
-      if (Platform.OS === 'web' && typeof window !== 'undefined') {
-        window.location.replace(
-          resolveMcpOauthSignInReturnUrl(route, APP_ENV?.MANAGER_APP) || '/',
-        );
+      const session = await actions.signIn({username, password});
+      if (session?.must_change_password) {
+        navigation.reset({
+          index: 0,
+          routes: [{name: 'ForcedChangePasswordPage'}],
+        });
         return;
       }
-      const postLoginRoute =
-        getSignInPostLoginRoute(navigation, route) || 'HomePage';
-      navigation.reset({
-        index: 0,
-        routes: [
-          {
-            name: postLoginRoute,
-            ...(redirectParams ? {params: redirectParams} : {}),
-          },
-        ],
-      });
+      const oauthReturnUrl = resolveMcpOauthSignInReturnUrl(route, APP_ENV?.MANAGER_APP);
+      if (Platform.OS === 'web' && oauthReturnUrl && typeof window !== 'undefined') {
+        window.location.replace(oauthReturnUrl);
+        return;
+      }
     } catch (error) {
       showError(
         error.message ||
@@ -180,27 +168,10 @@ export default function SignIn({navigation}) {
     try {
       const accessToken = await requestGoogleAccessToken(googleClientId);
       await actions.gSignIn({access_token: accessToken});
-
-      // Web: full navigation after auth. Soft navigation.reset races CheckLogin
-      // and DefaultProvider after logout→login and triggers React #185
-      // (app-community#827). Session is already in localStorage from logIn.
-      if (Platform.OS === 'web' && typeof window !== 'undefined') {
-        window.location.replace(
-          resolveMcpOauthSignInReturnUrl(route, APP_ENV?.MANAGER_APP) || '/',
-        );
-        return;
+      const oauthReturnUrl = resolveMcpOauthSignInReturnUrl(route, APP_ENV?.MANAGER_APP);
+      if (Platform.OS === 'web' && oauthReturnUrl && typeof window !== 'undefined') {
+        window.location.replace(oauthReturnUrl);
       }
-      const postLoginRoute =
-        getSignInPostLoginRoute(navigation, route) || 'HomePage';
-      navigation.reset({
-        index: 0,
-        routes: [
-          {
-            name: postLoginRoute,
-            ...(redirectParams ? {params: redirectParams} : {}),
-          },
-        ],
-      });
     } catch (error) {
       showError(getGoogleSignInErrorMessage(error));
     } finally {
@@ -220,27 +191,10 @@ export default function SignIn({navigation}) {
     try {
       const accessToken = await requestDiscordAccessToken(discordClientId);
       await actions.dSignIn({access_token: accessToken});
-
-      // Web: full navigation after auth. Soft navigation.reset races CheckLogin
-      // and DefaultProvider after logout→login and triggers React #185
-      // (app-community#827). Session is already in localStorage from logIn.
-      if (Platform.OS === 'web' && typeof window !== 'undefined') {
-        window.location.replace(
-          resolveMcpOauthSignInReturnUrl(route, APP_ENV?.MANAGER_APP) || '/',
-        );
-        return;
+      const oauthReturnUrl = resolveMcpOauthSignInReturnUrl(route, APP_ENV?.MANAGER_APP);
+      if (Platform.OS === 'web' && oauthReturnUrl && typeof window !== 'undefined') {
+        window.location.replace(oauthReturnUrl);
       }
-      const postLoginRoute =
-        getSignInPostLoginRoute(navigation, route) || 'HomePage';
-      navigation.reset({
-        index: 0,
-        routes: [
-          {
-            name: postLoginRoute,
-            ...(redirectParams ? {params: redirectParams} : {}),
-          },
-        ],
-      });
     } catch (error) {
       showError(resolveDiscordOauthErrorMessage(error));
     } finally {
@@ -257,7 +211,7 @@ export default function SignIn({navigation}) {
     }
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(login)) {
-      showError('Informe um e-mail válido para receber o link.');
+      showError('Informe um e-mail válido para receber a senha temporária.');
       return;
     }
 
@@ -272,17 +226,13 @@ export default function SignIn({navigation}) {
       });
 
       showSuccess(
-        'Se o login existir, o link de recuperação será enviado para o e-mail informado.',
-        {
-          duration: 4000,
-        },
+        'Se o login existir, uma senha temporária (15 min) será enviada por e-mail. Faça login e troque a senha nesse prazo.',
+        {duration: 6000},
       );
       setRecoveryLogin('');
       setForgotPasswordVisible(false);
     } catch (error) {
-      showError(
-        error?.message || 'Não foi possível enviar o link de recuperação.',
-      );
+      showError(error?.message || 'Não foi possível enviar a senha temporária.');
     } finally {
       setIsRecovering(false);
     }
