@@ -11,6 +11,7 @@ const oauthParams = {
   code_challenge: 'a'.repeat(43),
   code_challenge_method: 'S256',
   scope: 'mcp:read',
+  resource: 'https://api.controleonline.com/mcp/app.controleonline.com',
 }
 
 describe('MCP OAuth browser continuation', () => {
@@ -25,6 +26,7 @@ describe('MCP OAuth browser continuation', () => {
     expect(url.origin).toBe('https://manager.example')
     expect(url.pathname).toBe('/mcp/oauth/consent')
     expect(url.searchParams.get('redirect_uri')).toBe(oauthParams.redirect_uri)
+    expect(url.searchParams.get('resource')).toBe(oauthParams.resource)
     expect(url.searchParams.has('api_key')).toBe(false)
   })
 
@@ -40,7 +42,7 @@ describe('MCP OAuth browser continuation', () => {
   })
 
   it('restores the consent flow after the login page reloads', () => {
-    expect(
+    const url = new URL(
       resolveMcpOauthSignInReturnUrl(
         {
           redirectRoute: 'McpOAuthConsentPage',
@@ -48,7 +50,10 @@ describe('MCP OAuth browser continuation', () => {
         },
         'https://manager.example',
       ),
-    ).toContain('https://manager.example/mcp/oauth/consent?')
+    )
+
+    expect(url.href).toContain('https://manager.example/mcp/oauth/consent?')
+    expect(url.searchParams.get('resource')).toBe(oauthParams.resource)
   })
 
   it('ignores unrelated sign-in redirects', () => {

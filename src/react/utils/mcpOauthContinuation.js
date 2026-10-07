@@ -7,6 +7,7 @@ const OAUTH_QUERY_KEYS = [
   'code_challenge',
   'code_challenge_method',
   'scope',
+  'resource',
 ]
 
 const firstString = value => {
