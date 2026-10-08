@@ -45,8 +45,10 @@ describe('MCP OAuth browser continuation', () => {
     expect(
       resolveMcpOauthSignInReturnUrl(
         {
-          redirectRoute: 'McpOAuthConsentPage',
-          redirectParams: JSON.stringify(oauthParams),
+          params: {
+            redirectRoute: 'McpOAuthConsentPage',
+            redirectParams: JSON.stringify(oauthParams),
+          },
         },
         'https://manager.example',
       ),
