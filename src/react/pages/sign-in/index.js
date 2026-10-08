@@ -38,7 +38,6 @@ import {
   resolveDiscordOauthErrorMessage,
   resolveCompanyDiscordOauthClientId,
 } from '../../utils/discordOauth';
-import {env as APP_ENV} from '@env';
 
 export default function SignIn({navigation}) {
   const route = useRoute();
