@@ -38,6 +38,7 @@ import {
   resolveDiscordOauthErrorMessage,
   resolveCompanyDiscordOauthClientId,
 } from '../../utils/discordOauth';
+import {env as APP_ENV} from '@env';
 
 export default function SignIn({navigation}) {
   const route = useRoute();
@@ -125,6 +126,8 @@ export default function SignIn({navigation}) {
 
   const handleSignIn = async () => {
     if (!validateForm()) return;
+    // Capture before signIn() updates auth state and CheckLogin changes routes.
+    const oauthReturnUrl = resolveMcpOauthSignInReturnUrl(route, APP_ENV?.MANAGER_APP);
     setIsLoading(true);
     setErrors({});
     try {
@@ -136,7 +139,6 @@ export default function SignIn({navigation}) {
         });
         return;
       }
-      const oauthReturnUrl = resolveMcpOauthSignInReturnUrl(route, APP_ENV?.MANAGER_APP);
       if (Platform.OS === 'web' && oauthReturnUrl && typeof window !== 'undefined') {
         window.location.replace(oauthReturnUrl);
         return;
@@ -164,13 +166,15 @@ export default function SignIn({navigation}) {
 
     setIsGoogleLoading(true);
     setErrors({});
+    // Capture before gSignIn() updates auth state and CheckLogin changes routes.
+    const oauthReturnUrl = resolveMcpOauthSignInReturnUrl(route, APP_ENV?.MANAGER_APP);
 
     try {
       const accessToken = await requestGoogleAccessToken(googleClientId);
       await actions.gSignIn({access_token: accessToken});
-      const oauthReturnUrl = resolveMcpOauthSignInReturnUrl(route, APP_ENV?.MANAGER_APP);
       if (Platform.OS === 'web' && oauthReturnUrl && typeof window !== 'undefined') {
         window.location.replace(oauthReturnUrl);
+        return;
       }
     } catch (error) {
       showError(getGoogleSignInErrorMessage(error));
@@ -187,13 +191,15 @@ export default function SignIn({navigation}) {
 
     setIsDiscordLoading(true);
     setErrors({});
+    // Capture before dSignIn() updates auth state and CheckLogin changes routes.
+    const oauthReturnUrl = resolveMcpOauthSignInReturnUrl(route, APP_ENV?.MANAGER_APP);
 
     try {
       const accessToken = await requestDiscordAccessToken(discordClientId);
       await actions.dSignIn({access_token: accessToken});
-      const oauthReturnUrl = resolveMcpOauthSignInReturnUrl(route, APP_ENV?.MANAGER_APP);
       if (Platform.OS === 'web' && oauthReturnUrl && typeof window !== 'undefined') {
         window.location.replace(oauthReturnUrl);
+        return;
       }
     } catch (error) {
       showError(resolveDiscordOauthErrorMessage(error));
