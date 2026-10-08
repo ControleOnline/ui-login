@@ -30,7 +30,7 @@ const CheckLogin = ({}) => {
   const authStore = useStore('auth');
   const authGetters = authStore.getters;
   const authActions = authStore.actions;
-  const {isLogged, sessionChecked} = authGetters;
+  const {isLogged, user, sessionChecked} = authGetters;
   const [currentRouteName, setCurrentRouteName] = useState('');
   const routeParamsRef = useRef(null);
   const navigatingRef = useRef(false);
@@ -141,6 +141,24 @@ const CheckLogin = ({}) => {
       return;
     }
 
+    if (
+      isLogged &&
+      user?.must_change_password &&
+      currentRouteName !== 'ForcedChangePasswordPage'
+    ) {
+      const redirectKey = `${currentRouteName}|must-change-password`;
+      if (lastRedirectKeyRef.current === redirectKey) {
+        return;
+      }
+      navigatingRef.current = true;
+      lastRedirectKeyRef.current = redirectKey;
+      navigation.reset({
+        index: 0,
+        routes: [{name: 'ForcedChangePasswordPage'}],
+      });
+      return;
+    }
+
     if (isLogged && currentRouteName === 'SignInPage') {
       const routeNames = navigation?.getState?.()?.routeNames || [];
       const forceHome = forceHomeAfterLoginRef.current;
@@ -183,6 +201,7 @@ const CheckLogin = ({}) => {
     isLogged,
     navigation,
     sessionChecked,
+    user,
   ]);
 
   return null;

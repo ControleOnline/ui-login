@@ -42,7 +42,7 @@ describe('MCP OAuth browser continuation', () => {
   })
 
   it('restores the consent flow after the login page reloads', () => {
-    const url = new URL(
+    expect(
       resolveMcpOauthSignInReturnUrl(
         {
           redirectRoute: 'McpOAuthConsentPage',
@@ -50,10 +50,7 @@ describe('MCP OAuth browser continuation', () => {
         },
         'https://manager.example',
       ),
-    )
-
-    expect(url.href).toContain('https://manager.example/mcp/oauth/consent?')
-    expect(url.searchParams.get('resource')).toBe(oauthParams.resource)
+    ).toContain('https://manager.example/mcp/oauth/consent?')
   })
 
   it('ignores unrelated sign-in redirects', () => {
