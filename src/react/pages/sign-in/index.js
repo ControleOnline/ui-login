@@ -128,6 +128,9 @@ export default function SignIn({navigation}) {
 
   const handleSignIn = async () => {
     if (!validateForm()) return;
+    // CheckLogin can replace the current route as soon as auth state changes.
+    // Capture the OAuth continuation before signIn() triggers that navigation.
+    const oauthReturnUrl = resolveMcpOauthSignInReturnUrl(route, APP_ENV?.MANAGER_APP);
     setIsLoading(true);
     setErrors({});
     try {
@@ -138,7 +141,7 @@ export default function SignIn({navigation}) {
       // (app-community#827). Session is already in localStorage from logIn.
       if (Platform.OS === 'web' && typeof window !== 'undefined') {
         window.location.replace(
-          resolveMcpOauthSignInReturnUrl(route, APP_ENV?.MANAGER_APP) || '/',
+          oauthReturnUrl || '/',
         );
         return;
       }
@@ -176,6 +179,7 @@ export default function SignIn({navigation}) {
 
     setIsGoogleLoading(true);
     setErrors({});
+    const oauthReturnUrl = resolveMcpOauthSignInReturnUrl(route, APP_ENV?.MANAGER_APP);
 
     try {
       const accessToken = await requestGoogleAccessToken(googleClientId);
@@ -186,7 +190,7 @@ export default function SignIn({navigation}) {
       // (app-community#827). Session is already in localStorage from logIn.
       if (Platform.OS === 'web' && typeof window !== 'undefined') {
         window.location.replace(
-          resolveMcpOauthSignInReturnUrl(route, APP_ENV?.MANAGER_APP) || '/',
+          oauthReturnUrl || '/',
         );
         return;
       }
@@ -216,6 +220,7 @@ export default function SignIn({navigation}) {
 
     setIsDiscordLoading(true);
     setErrors({});
+    const oauthReturnUrl = resolveMcpOauthSignInReturnUrl(route, APP_ENV?.MANAGER_APP);
 
     try {
       const accessToken = await requestDiscordAccessToken(discordClientId);
@@ -226,7 +231,7 @@ export default function SignIn({navigation}) {
       // (app-community#827). Session is already in localStorage from logIn.
       if (Platform.OS === 'web' && typeof window !== 'undefined') {
         window.location.replace(
-          resolveMcpOauthSignInReturnUrl(route, APP_ENV?.MANAGER_APP) || '/',
+          oauthReturnUrl || '/',
         );
         return;
       }
