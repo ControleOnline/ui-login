@@ -59,9 +59,13 @@ export const buildMcpOauthConsentUrl = (params, managerApp) => {
 }
 
 export const resolveMcpOauthSignInReturnUrl = (route, managerApp) => {
-  if (route?.redirectRoute !== 'McpOAuthConsentPage') return null
+  // React Navigation supplies these values in route.params. Accept the
+  // parameter object itself as well to keep the helper convenient in callers
+  // and tests that already extracted it.
+  const routeParams = route?.params || route
+  if (routeParams?.redirectRoute !== 'McpOAuthConsentPage') return null
 
-  let params = route.redirectParams
+  let params = routeParams.redirectParams
   if (typeof params === 'string') {
     try {
       params = JSON.parse(params)
