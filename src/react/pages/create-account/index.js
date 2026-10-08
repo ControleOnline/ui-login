@@ -15,8 +15,13 @@ import { env } from '@env';
 import {app_type} from '@appType';
 import {
   formatDisplayUppercase,
-  uppercaseText,
 } from '@controleonline/ui-common/src/react/utils/entityDisplay';
+import {
+  PASSWORD_HELP_LINES,
+  PASSWORD_MSG_MIN_LENGTH,
+  mapPasswordErrorMessage,
+  validatePasswordClient,
+} from '@controleonline/ui-common/src/react/utils/passwordPolicy';
 import { resolveAppDomain, resolveRuntimeHost } from '@controleonline/ui-common/src/utils/appDomain';
 import {useStore} from '@store';
 import {useMessage} from '@controleonline/ui-common/src/react/components/MessageService';
@@ -24,9 +29,12 @@ import Formatter from '@controleonline/ui-common/src/utils/formatter';
 import {resolveSignInTheme} from '../sign-in/index.styles';
 import {createStyles} from './index.styles';
 import { useTimezones } from './useTimezones';
+import {
+  resolveCreateAccountCatchFeedback,
+} from './utils';
 
 export default function CreateAccountPage({navigation, route}) {
-  const {showError, showSuccess} = useMessage();
+  const {showDialog, showError, showSuccess} = useMessage();
   const authStore = useStore('auth');
   const themeStore = useStore('theme');
   const actions = authStore.actions;
@@ -110,8 +118,8 @@ export default function CreateAccountPage({navigation, route}) {
     if (!people.user)
       return 'Informe o usuário';
 
-    if (!people.password || people.password.length < 6)
-      return 'Senha deve ter pelo menos 6 caracteres';
+    const passwordError = validatePasswordClient(people.password);
+    if (passwordError) return passwordError;
 
     if (type === 'PJ') {
 
@@ -143,8 +151,8 @@ export default function CreateAccountPage({navigation, route}) {
       const payload = {
         people: {
           document: Formatter.onlyNumbers(people.document),
-          name: formatDisplayUppercase(people.name),
-          alias: formatDisplayUppercase(people.alias),
+          name: String(people.name || "").trim(),
+          alias: String(people.alias || "").trim(),
           email: people.email,
           phone: {
             ddi: people.ddi,
@@ -164,8 +172,8 @@ export default function CreateAccountPage({navigation, route}) {
 
         payload.company = {
           document: Formatter.onlyNumbers(company.document),
-          name: formatDisplayUppercase(company.name),
-          alias: formatDisplayUppercase(company.alias),
+          name: String(company.name || "").trim(),
+          alias: String(company.alias || "").trim(),
         };
 
       }
@@ -185,9 +193,28 @@ export default function CreateAccountPage({navigation, route}) {
       }, 1200);
 
     } catch (e) {
-
-      showError(e.message);
-
+      const feedback = resolveCreateAccountCatchFeedback(e, {
+        email: people.email || people.user,
+        mapPasswordErrorMessage,
+      });
+      if (feedback.type === 'duplicate-account') {
+        showDialog({
+          title: feedback.title,
+          message: feedback.message,
+          onConfirm: () =>
+            navigation?.navigate?.('SignInPage', {
+              ...(route?.params?.redirectRoute
+                ? {redirectRoute: route.params.redirectRoute}
+                : {}),
+              ...(route?.params?.redirectParams
+                ? {redirectParams: route.params.redirectParams}
+                : {}),
+              ...feedback.params,
+            }),
+        });
+      } else {
+        showError(feedback.message);
+      }
     } finally {
 
       setLoading(false);
@@ -291,7 +318,7 @@ export default function CreateAccountPage({navigation, route}) {
           placeholder="Nome completo"
           placeholderTextColor={theme.inputPlaceholderText}
           value={people.name}
-          onChangeText={v => setPeople({ ...people, name: uppercaseText(v) })}
+          onChangeText={v => setPeople({ ...people, name: v })}
         />
 
         <TextInput
@@ -299,7 +326,7 @@ export default function CreateAccountPage({navigation, route}) {
           placeholder="Como quer ser chamado?"
           placeholderTextColor={theme.inputPlaceholderText}
           value={people.alias}
-          onChangeText={v => setPeople({ ...people, alias: uppercaseText(v) })}
+          onChangeText={v => setPeople({ ...people, alias: v })}
         />
 
         <TextInput
@@ -380,7 +407,7 @@ export default function CreateAccountPage({navigation, route}) {
               placeholderTextColor={theme.inputPlaceholderText}
               value={company.name}
               onChangeText={v =>
-                setCompany({ ...company, name: uppercaseText(v) })
+                setCompany({ ...company, name: v })
               }
             />
 
@@ -390,7 +417,7 @@ export default function CreateAccountPage({navigation, route}) {
               placeholderTextColor={theme.inputPlaceholderText}
               value={company.alias}
               onChangeText={v =>
-                setCompany({ ...company, alias: uppercaseText(v) })
+                setCompany({ ...company, alias: v })
               }
             />
 
@@ -414,7 +441,7 @@ export default function CreateAccountPage({navigation, route}) {
 
         <TextInput
           style={styles.input}
-          placeholder="Senha"
+          placeholder="Senha (mín. 6 caracteres)"
           placeholderTextColor={theme.inputPlaceholderText}
           secureTextEntry
           value={people.password}
