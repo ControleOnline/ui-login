@@ -14,7 +14,7 @@ import {api} from '@controleonline/ui-common/src/api'
 import {env as APP_ENV} from '@env'
 import {
   buildMcpOauthConsentUrl,
-  normalizeMcpOauthParams,
+  resolveMcpOauthParams,
 } from '../../utils/mcpOauthContinuation'
 
 const getCallbackHost = value => {
@@ -31,10 +31,13 @@ export default function McpOAuthConsentPage({navigation, route}) {
   const authActions = authStore.actions
   const [busy, setBusy] = useState(false)
   const [status, setStatus] = useState('')
-  const oauthParams = useMemo(
-    () => normalizeMcpOauthParams(route?.params),
-    [route?.params],
-  )
+  const oauthParams = useMemo(() => {
+    const search =
+      Platform.OS === 'web' && typeof window !== 'undefined'
+        ? window.location.search
+        : ''
+    return resolveMcpOauthParams(route?.params, search)
+  }, [route?.params])
   const consentUrl = useMemo(
     () => buildMcpOauthConsentUrl(oauthParams, APP_ENV?.MANAGER_APP),
     [oauthParams],
