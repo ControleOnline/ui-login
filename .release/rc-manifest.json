@@ -1,13 +1,14 @@
 {
-  "version": "1.0.115",
+  "version": "1.0.118",
   "rc": 1,
-  "branch": "rc/1.0.115-rc.1",
-  "baseMaster": "c6a931838fa301b757a25468be8470892c2d61d8",
+  "branch": "rc/1.0.118-rc.1",
+  "baseMaster": "9f17bb9bbe556d68db0fa3cb9353abb6fc7fae1a",
   "tasks": [
-    973
+    49
   ],
   "repositories": {
-    "ControleOnline/ui-login": "7cd6af6966f02c7334c49dc2d967f694ef622cb3"
+    "ControleOnline/ui-login": "96b9a64015dfe78c3193c2058d1256ce3282b5db"
   },
-  "frozen": true
+  "frozen": true,
+  "contentCommit": "96b9a64015dfe78c3193c2058d1256ce3282b5db"
 }
