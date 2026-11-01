@@ -22,6 +22,51 @@ export const normalizeMcpOauthParams = params =>
     return normalized
   }, {})
 
+/**
+ * Read OAuth query keys from a URL search string (e.g. window.location.search).
+ * React Navigation web often does not map query string into route.params.
+ */
+export const readMcpOauthParamsFromSearch = search => {
+  if (typeof search !== 'string' || search === '') {
+    return {}
+  }
+
+  try {
+    const query = search.startsWith('?') ? search.slice(1) : search
+    const sp = new URLSearchParams(query)
+    const params = {}
+    OAUTH_QUERY_KEYS.forEach(key => {
+      const value = firstString(sp.get(key))
+      if (value) params[key] = value
+    })
+    return params
+  } catch {
+    return {}
+  }
+}
+
+/**
+ * Prefer route params; fill missing OAuth keys from the browser query string.
+ */
+export const resolveMcpOauthParams = (routeParams, locationSearch = '') => {
+  const fromRoute = normalizeMcpOauthParams(routeParams)
+  const fromSearch = readMcpOauthParamsFromSearch(locationSearch)
+  return normalizeMcpOauthParams({...fromSearch, ...fromRoute})
+}
+
+export const isCompleteMcpOauthParams = params => {
+  const oauthParams = normalizeMcpOauthParams(params)
+  return (
+    oauthParams.response_type === 'code' &&
+    Boolean(oauthParams.client_id) &&
+    Boolean(oauthParams.redirect_uri) &&
+    Boolean(oauthParams.state) &&
+    Boolean(oauthParams.code_challenge) &&
+    oauthParams.code_challenge_method === 'S256' &&
+    Boolean(oauthParams.scope)
+  )
+}
+
 export const buildMcpOauthConsentUrl = (params, managerApp) => {
   let managerUrl
   try {
@@ -39,15 +84,7 @@ export const buildMcpOauthConsentUrl = (params, managerApp) => {
   managerUrl.hash = ''
 
   const oauthParams = normalizeMcpOauthParams(params)
-  if (
-    oauthParams.response_type !== 'code' ||
-    !oauthParams.client_id ||
-    !oauthParams.redirect_uri ||
-    !oauthParams.state ||
-    !oauthParams.code_challenge ||
-    oauthParams.code_challenge_method !== 'S256' ||
-    !oauthParams.scope
-  ) {
+  if (!isCompleteMcpOauthParams(oauthParams)) {
     return null
   }
 
@@ -59,9 +96,6 @@ export const buildMcpOauthConsentUrl = (params, managerApp) => {
 }
 
 export const resolveMcpOauthSignInReturnUrl = (route, managerApp) => {
-  // React Navigation supplies these values in route.params. Accept the
-  // parameter object itself as well to keep the helper convenient in callers
-  // and tests that already extracted it.
   const routeParams = route?.params || route
   if (routeParams?.redirectRoute !== 'McpOAuthConsentPage') return null
 

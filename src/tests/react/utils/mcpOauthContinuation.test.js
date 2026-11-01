@@ -1,6 +1,9 @@
 import {
   buildMcpOauthConsentUrl,
+  readMcpOauthParamsFromSearch,
+  resolveMcpOauthParams,
   resolveMcpOauthSignInReturnUrl,
+  isCompleteMcpOauthParams,
 } from '../../../react/utils/mcpOauthContinuation'
 
 const oauthParams = {
@@ -11,7 +14,7 @@ const oauthParams = {
   code_challenge: 'a'.repeat(43),
   code_challenge_method: 'S256',
   scope: 'mcp:read',
-  resource: 'https://api.controleonline.com/mcp/app.controleonline.com',
+  resource: 'https://api.example.test/mcp',
 }
 
 describe('MCP OAuth browser continuation', () => {
@@ -39,6 +42,22 @@ describe('MCP OAuth browser continuation', () => {
     )
 
     expect(url.origin).toBe('https://manager.example')
+  })
+
+  it('reads OAuth params from the browser query string', () => {
+    const search = new URLSearchParams(oauthParams).toString()
+    expect(readMcpOauthParamsFromSearch(`?${search}`)).toEqual(oauthParams)
+    expect(isCompleteMcpOauthParams(readMcpOauthParamsFromSearch(`?${search}`))).toBe(
+      true,
+    )
+  })
+
+  it('fills incomplete route params from the query string', () => {
+    const search = new URLSearchParams(oauthParams).toString()
+    expect(resolveMcpOauthParams({}, `?${search}`)).toEqual(oauthParams)
+    expect(
+      resolveMcpOauthParams({client_id: 'from-route'}, `?${search}`).client_id,
+    ).toBe('from-route')
   })
 
   it('restores the consent flow after the login page reloads', () => {
