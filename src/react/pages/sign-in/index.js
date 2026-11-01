@@ -39,7 +39,7 @@ import {
   resolveCompanyDiscordOauthClientId,
 } from '../../utils/discordOauth';
 
-export default function SignIn({navigation}) {
+export default function SignIn({navigation, identifierLabel, identifierRequiredMessage, identifierIcon = 'mail', introMessage, createAccountLabel}) {
   const route = useRoute();
   const {showSuccess, showError} = useMessage();
   const [username, setUsername] = useState('');
@@ -119,6 +119,7 @@ export default function SignIn({navigation}) {
 
   const validateForm = () => {
     const newErrors = validateSignInForm(username, password);
+    if (newErrors.username && identifierRequiredMessage) newErrors.username = identifierRequiredMessage;
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -287,7 +288,7 @@ export default function SignIn({navigation}) {
               animation="fadeIn"
               delay={400}
               style={styles.subtitle}>
-              {global.t?.t(
+              {introMessage || global.t?.t(
                 'auth',
                 'label',
                 'Entre com suas credenciais para acessar',
@@ -302,13 +303,14 @@ export default function SignIn({navigation}) {
                 errors.username && styles.inputError,
               ]}>
               <Icon
-                name="mail"
+                name={identifierIcon}
                 size={20}
                 color={theme.inputIcon}
                 style={styles.inputIcon}
               />
               <TextInput
-                placeholder={global.t?.t('auth', 'label', 'Email') || 'Email'}
+                accessibilityLabel={identifierLabel || global.t?.t('auth', 'label', 'Email') || 'Email'}
+                placeholder={identifierLabel || global.t?.t('auth', 'label', 'Email') || 'Email'}
                 placeholderTextColor={theme.inputPlaceholderText}
                 style={styles.input}
                 value={username}
@@ -431,7 +433,7 @@ export default function SignIn({navigation}) {
                 })
               }>
               <Text style={styles.createAccountText}>
-                {global.t?.t('auth', 'label', 'createAccount') || 'Criar conta'}
+                {createAccountLabel || global.t?.t('auth', 'label', 'createAccount') || 'Criar conta'}
               </Text>
             </TouchableOpacity>
 
