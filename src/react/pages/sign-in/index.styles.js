@@ -36,6 +36,7 @@ export const resolveSignInTheme = (themeColors = {}) => {
     // Dedicated colors for the sign-in links; they fall back to linkText when the theme omits them (#1506).
     loginLabelCreateAccount: themeColors.loginLabelCreateAccount,
     loginLabelForgotPassword: themeColors.loginLabelForgotPassword,
+    loginLabelWellcome: themeColors.loginLabelWellcome,
     modalOverlay: themeColors.modalOverlay,
     modalBackground: themeColors.modalBackground,
     modalBorder: themeColors.modalBorder,
@@ -90,7 +91,7 @@ export const createStyles = (theme = resolveSignInTheme()) =>
     },
     subtitle: {
       fontSize: 15,
-      color: theme.textSecondary,
+      color: theme.loginLabelWellcome || theme.textSecondary,
       textAlign: 'center',
     },
     form: {
