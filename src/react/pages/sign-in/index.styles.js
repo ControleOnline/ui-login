@@ -33,6 +33,9 @@ export const resolveSignInTheme = (themeColors = {}) => {
     buttonIconSecondary: themeColors.buttonIconSecondary,
     buttonTextSecondary: themeColors.buttonTextSecondary,
     linkText: themeColors.linkText,
+    // Dedicated colors for the sign-in links; they fall back to linkText when the theme omits them (#1506).
+    loginLabelCreateAccount: themeColors.loginLabelCreateAccount,
+    loginLabelForgotPassword: themeColors.loginLabelForgotPassword,
     modalOverlay: themeColors.modalOverlay,
     modalBackground: themeColors.modalBackground,
     modalBorder: themeColors.modalBorder,
@@ -123,7 +126,7 @@ export const createStyles = (theme = resolveSignInTheme()) =>
     forgotPasswordText: {
       fontSize: 14,
       fontWeight: '600',
-      color: theme.linkText,
+      color: theme.loginLabelForgotPassword || theme.linkText,
     },
     loginButton: {
       backgroundColor: theme.buttonBackground,
@@ -215,7 +218,7 @@ export const createStyles = (theme = resolveSignInTheme()) =>
     createAccountText: {
       fontSize: 15,
       fontWeight: '600',
-      color: theme.linkText,
+      color: theme.loginLabelCreateAccount || theme.linkText,
     },
     modalOverlay: {
       flex: 1,
