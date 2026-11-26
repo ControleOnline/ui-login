@@ -308,19 +308,19 @@ const createPageStyles = theme =>
       marginBottom: 12,
       padding: 12,
       borderRadius: 8,
-      backgroundColor: theme.inputBackground || '#F8FAFC',
+      backgroundColor: theme.inputBackground,
       borderWidth: 1,
-      borderColor: theme.inputBorder || '#E2E8F0',
+      borderColor: theme.inputBorder,
     },
     helpTitle: {
       fontSize: 13,
       fontWeight: '600',
-      color: theme.labelText || '#334155',
+      color: theme.textPrimary,
       marginBottom: 4,
     },
     helpLine: {
       fontSize: 12,
-      color: theme.mutedText || '#64748B',
+      color: theme.textSecondary,
       lineHeight: 18,
     },
     errorText: {
